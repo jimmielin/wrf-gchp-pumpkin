@@ -346,7 +346,7 @@
             call wrf_error_fatal("The number of chemistry species has changed between nests. Use same chem_opt for all domains.")
       end if
 
-      aer_select:SELECT CASE(config_flags%chem_opt)
+  aer_select: SELECT CASE(config_flags%chem_opt)
    CASE (GOCARTRACM_KPP, GOCARTRADM2)
       CALL wrf_debug(15, 'call GOCARTRACM_KPP chem/aerosols initialization')
       ch_dust(:, :) = 0.8D-9
@@ -383,20 +383,21 @@
                                 ids, ide, jds, jde, kds, kde, &
                                 ims, ime, jms, jme, kms, kme, &
                                 its, ite, jts, jte, kts, kte, config_flags)
+
 !...Convert aerosols to mixing ratio
       if (.NOT. config_flags%restart) then
-      if (config_flags%chem_in_opt == 0 .and. num_chem .gt. numgas) then
-      do l = numgas + 1, num_chem
-         do j = jts, jte
-            do k = kts, kte
-               kk = min(k, kde - 1)
-               do i = its, ite
-                  chem(i, k, j, l) = chem(i, kk, j, l)*alt(i, kk, j)
-               enddo
-            enddo
-         enddo
-      enddo
-      endif
+        if (config_flags%chem_in_opt == 0 .and. num_chem .gt. numgas) then
+        do l = numgas + 1, num_chem
+           do j = jts, jte
+              do k = kts, kte
+                 kk = min(k, kde - 1)
+                 do i = its, ite
+                    chem(i, k, j, l) = chem(i, kk, j, l)*alt(i, kk, j)
+                 enddo
+              enddo
+           enddo
+        enddo
+        endif
       endif
       chem(its:ite, kts:min(kte, kde - 1), jts:jte, :) = max(chem(its:ite, kts:min(kte, kde - 1), jts:jte, :), epsilc)
 
@@ -409,8 +410,8 @@
             enddo
          enddo
       enddo
-      ch_dust(:, :) = 0.8D-9
-      ch_ss(:, :) = 1.
+      ! ch_dust(:, :) = 0.8D-9
+      ! ch_ss(:, :) = 1.
 
 !
 ! Initialize the cloud droplet number and mass
