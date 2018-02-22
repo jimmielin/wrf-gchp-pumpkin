@@ -336,7 +336,7 @@ subroutine chem_driver(grid, config_flags &
    ijds = min(ids, jds)
    ijde = max(ide, jde)
    chem_minval = epsilc !chem_minval can be case dependant and set below...
-   chem_select:SELECT CASE(config_flags%chem_opt)
+   chem_select: SELECT CASE(config_flags%chem_opt)
 CASE (1)
    CALL wrf_debug(15, 'Pumpkin chem_driver: chem_opt = 1, initializing chemistry option')
    haveaer = .false.
