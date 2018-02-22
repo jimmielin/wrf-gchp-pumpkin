@@ -50,10 +50,7 @@
       USE module_domain
       USE module_configure
       USE module_state_description
-      USE module_phot_mad
 
-      USE module_ftuv_driver, only:ftuv_init
-      USE module_mozcart_wetscav, only:wetscav_mozcart_init
       USE module_aerosols_sorgam
       USE module_aerosols_soa_vbs, only:aerosols_soa_vbs_init
       USE module_dep_simple
@@ -61,10 +58,6 @@
       USE module_data_gocart_seas
       USE module_data_gocartchem
       USE module_gocart_chem ! , only: szangle
-      USE module_cbm4_initmixrats, only:cbm4_init_wrf_mixrats
-      USE module_cbmz_initmixrats, only:cbmz_init_wrf_mixrats
-      USE module_mosaic_driver, only:init_data_mosaic_asect
-      USE module_mosaic_initmixrats, only:mosaic_init_wrf_mixrats
       USE module_input_chem_data, only:get_last_gas, &
          gasprofile_init_pnnl, &
          mozcart_lbc_init, &
@@ -73,10 +66,7 @@
       USE module_mixactivate_wrappers, only:mosaic_mixactivate_init
       USE module_upper_bc_driver, only:upper_bc_init
       USE module_tropopause, only:tropopause_init
-      USE module_cam_mam_init, only:cam_mam_init
-      USE module_cam_mam_initmixrats, only:cam_mam_initmixrats
-
-      USE module_cam_mam_wetscav, only:wetscav_cam_mam_driver_init
+      
       USE module_cam_support, only:numgas_mam, gas_pcnst_modal_aero, gas_pcnst_modal_aero_pos !BSINGH - Fix for non-MAM simulations
       IMPLICIT NONE
 
@@ -169,9 +159,9 @@
 
       numgas = get_last_gas(config_flags%chem_opt)
 
-      chem_select:SELECT CASE(config_flags%chem_opt)
-   CASE (1)
-      CALL wrf_debug(15, 'calling only gocart aerosols driver from chem_driver')
+      chem_select: SELECT CASE(config_flags%chem_opt)
+      CASE (1)
+        CALL wrf_debug(15, 'calling only gocart aerosols driver from chem_driver')
       END SELECT chem_select
 
       ! WRF-Chem used to perform configuration flags validation here.
@@ -293,25 +283,24 @@
             end do
          end do
          do l = 1, num_emis_ant
-         do j = jts, jte
-            do k = 1, kemit
-               do i = its, ite
-                  emis_ant(i, k, j, l) = 0.
-               end do
-            end do
-         end do
+           do j = jts, jte
+              do k = 1, kemit
+                 do i = its, ite
+                    emis_ant(i, k, j, l) = 0.
+                 end do
+              end do
+           end do
          end do
       end if
 
-!--------------------------------------------------------------------------------------------------------
-!
-!   RETURN IF CHEMISTRY IS NOT RUNNING
-      IF (config_flags%chem_opt == 0) RETURN
+
+! Don't run if there isn't anything to do...
+      if(config_flags%chem_opt == 0) return
 
 ! Set the num_vert_mix variable if using ACM
       num_vert_mix = 0
       IF (config_flags%bl_pbl_physics == ACMPBLSCHEME) THEN
-         mix_select:SELECT CASE(config_flags%chem_opt)
+         mix_select: SELECT CASE(config_flags%chem_opt)
       CASE (RADM2SORG_AQ, RADM2SORG_AQCHEM, RACMSORG_AQ)
          num_vert_mix = numgas
       CASE DEFAULT
