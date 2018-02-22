@@ -10,9 +10,13 @@
 !   Peking University, School of Physics
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!   
+!   Codename Pumpkin: Abstracted Bindings for Chemistry-to-WRF
+!
 !   This Chemical Interface (chem/) is written after comprehensive study of
 !   the original chem_driver.f from WRF-Chem v3.6.1
 !   which is (c) their respective authors.
+!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 subroutine chem_driver(grid, config_flags &
