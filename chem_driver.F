@@ -36,7 +36,7 @@ subroutine chem_driver(grid, config_flags &
   USE module_dep_simple
   USE module_bioemi_simple
   USE module_phot_mad
-  USE module_ftuv_driver, only : ftuv_timestep_init
+  USE module_ftuv_driver, only :ftuv_timestep_init
   USE module_aerosols_sorgam
   USE module_chem_utilities
   USE module_gocart_so2so4
@@ -48,7 +48,7 @@ subroutine chem_driver(grid, config_flags &
   USE module_emissions_driver
   USE module_input_tracer, only: set_tracer
   USE module_wetscav_driver, only: wetscav_driver
-  USE module_wetdep_ls, only:wetdep_ls
+  USE module_wetdep_ls, only: wetdep_ls
   USE module_input_chem_data, only: last_chem_time, &
 
 #if (defined(CHEM_DBG_I) && defined(CHEM_DBG_J) && defined(CHEM_DBG_K))
@@ -60,13 +60,13 @@ subroutine chem_driver(grid, config_flags &
   USE module_tropopause,      only: tropopause_driver
   USE modal_aero_data, only: ntot_amode_cam_mam => ntot_amode
   USE module_cam_support, only: gas_pcnst => gas_pcnst_modal_aero,gas_pcnst_pos => gas_pcnst_modal_aero_pos, &
-       pcnst =>pcnst_runtime, numgas_mam, cam_mam_aerosols
+       pcnst => pcnst_runtime, numgas_mam, cam_mam_aerosols
   USE module_cu_camzm_driver, only: zm_conv_tend_2
   USE module_cam_mam_gas_wetdep_driver, only: cam_mam_gas_wetdep_driver
 
   IMPLICIT NONE
 
-  !BSINGH(PNNL)- Lahey compiler forces to declare the following interface
+  ! BSINGH(PNNL)- Lahey compiler forces to declare the following interface
   interface
      SUBROUTINE sum_pm_driver(config_flags,                         &
           alt, chem, h2oaj, h2oai,                                  &
@@ -136,8 +136,7 @@ subroutine chem_driver(grid, config_flags &
   
   
    !  Input data.
-   TYPE(domain), TARGET          :: grid
-
+   TYPE(domain), TARGET :: grid
 
    !
    !  Definitions of dummy arguments to solve
@@ -186,7 +185,7 @@ subroutine chem_driver(grid, config_flags &
 
       REAL :: DAYI,DPL,FICE,FRAIN,HOUR,PLYR,QI,QR,QW,RADT,TIMES,WC,TDUM,WMSK,RWMSK
       INTEGER                         :: ij 
-      INTEGER                         :: im , num_3d_m , ic , num_3d_c, num_3d_s
+      INTEGER                         :: im, num_3d_m, ic, num_3d_c, num_3d_s
       INTEGER                         :: ijds, ijde
       INTEGER                         :: ksubt
 
@@ -200,7 +199,7 @@ subroutine chem_driver(grid, config_flags &
       REAL, DIMENSION( grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33 ) :: &
          del_h2so4_gasprod  ! change to h2so4 during gas-phase chemistry, cam_mam packages
 
-      !Balwinder.Singh@pnnl.gov:dvmrdt_sv13d,dvmrcwdt_sv13d are the tendencies which are passsed on from the CAM-MAM cloud chemistry
+      !  Balwinder.Singh@pnnl.gov:dvmrdt_sv13d,dvmrcwdt_sv13d are the tendencies which are passsed on from the CAM-MAM cloud chemistry
       !to gasaerexch subroutine in cam_mam_aerchem_driver
       REAL, DIMENSION( grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33,gas_pcnst_pos) :: dvmrdt_sv13d,dvmrcwdt_sv13d 
 
@@ -264,43 +263,17 @@ subroutine chem_driver(grid, config_flags &
   ktau = grid%itimestep
   tmpTimeInterval = domain_get_time_since_sim_start(grid)
   curr_secs = real_time_r8(tmpTimeInterval)
-  ijulian=ifix(grid%julian)
+  ijulian = ifix(grid%julian)
 
-
-  !! -- Check whether to do photolysis steps -- !!
-  do_photstep = .false.
-  IF ( ktau==1 ) then
-     do_photstep = .true.
-  ELSE IF ( adapt_step_flag ) THEN
-     IF ( (grid%photdt<=0) .or. &
-          ( curr_secs+real(grid%dt,8)+0.01 >= &
-          ( INT( curr_secs/real(grid%photdt*60.,8)+1,8 )*real(grid%photdt*60.,8) ) ) &
-          ) then
-          !NOTE: The 0.01 added to the LHS of the conditional is to compensate
-          !      for occasional round off errors that prevented the >= from
-          !      ever testing as true. This adjustment has been added to the
-          !      other checks within the chem directory as well. wig, 30-Sep-2008
-        do_photstep = .true.
-     ENDIF
-  ELSE IF ( (MOD(ktau,grid%stepphot)==0) .or. (grid%stepphot==1) ) THEN
-     do_photstep = .true.
-  ENDIF
-
-  if( ktau==1 ) then
-     dtstepc = grid%dt
-  else
-     tmpTimeInterval = domain_get_current_time(grid) - last_chem_time(grid%id)
-     dtstepc = real(real_time_r8(tmpTimeInterval),4)
-  end if
-     
   ! initializing diagnostics and macros
 
-  if( ktau==1 ) then
+  if(ktau==1) then
      grid%conv_ct(:,:,:,:)   = 0.
      grid%chem_ct(:,:,:,:)   = 0.
      grid%vmix_ct(:,:,:,:)   = 0.  
   endif
-  if(config_flags%chemdiag == USECHEMDIAG)then
+
+  if(config_flags%chemdiag == USECHEMDIAG) then
   ! modify tendency list here
       chem_ct_indices(p_chem_co)   = p_co
       chem_ct_indices(p_chem_o3)   = p_o3
@@ -346,6 +319,7 @@ subroutine chem_driver(grid, config_flags &
 ! following two lines needed for MEGAN
   CALL domain_clock_get( grid, current_timestr=current_date_char )
   read(current_date_char(6:7),FMT='(I2)') current_month
+
 !
 !initialize
 !
@@ -357,8 +331,8 @@ subroutine chem_driver(grid, config_flags &
   numgas          = get_last_gas(config_flags%chem_opt)
 
 
-   !  Compute these starting and stopping locations for each tile and number of tiles.
-  CALL set_tiles ( grid , ids , ide , jds , jde , ips , ipe , jps , jpe )
+! Compute these starting and stopping locations for each tile and number of tiles.
+  CALL set_tiles (grid, ids, ide, jds, jde, ips, ipe, jps, jpe)
   k_start         = kps
   k_end           = kpe
 
@@ -366,44 +340,44 @@ subroutine chem_driver(grid, config_flags &
   ijde = max(ide, jde)
    chem_minval = epsilc !chem_minval can be case dependant and set below...
    chem_select: SELECT CASE(config_flags%chem_opt)
-    CASE (RADM2)
-       CALL wrf_debug(15,'calling radm2 from chem_driver')
+    CASE(1)
+       CALL wrf_debug(15, 'Pumpkin chem_driver: chem_opt = 1, initializing chemistry option')
        haveaer = .false.
     CASE DEFAULT
-       CALL wrf_debug(15,'calling chem_opt=? from chem_driver')
+       call wrf_error_fatal("Pumpkin chem_driver: Unrecognized chem_opt")
    END SELECT chem_select
 
-      do nv=1,num_chem
-         do j=jps,jpe
-            do k=kps,kpe
-               do i=ips,ipe
-                  chem(i,k,j,nv)=max(chem(i,k,j,nv),chem_minval) ! prevent underflow in chemistry
-               enddo
-            enddo
-         enddo
-      enddo
+    do nv=1,num_chema
+       do j=jps,jpe
+          do k=kps,kpe
+             do i=ips,ipe
+                chem(i,k,j,nv)=max(chem(i,k,j,nv),chem_minval) ! prevent underflow in chemistry
+             enddo
+          enddo
+       enddo
+    enddo
 
-      vdrog3=0.
-      do j=jps,min(jde-1,jpe)
-         do k=kps,kpe
-            do i=ips,min(ide-1,ipe)
-              vvel(i,k,j)=grid%w_2(i,k,j)
-              zmid(i,k,j)=grid%z(i,k,j)
-            enddo
-         enddo
-      enddo
-      do j=jps,min(jde-1,jpe)
-         do k=kps,min(kde-1,kpe)
-            do i=ips,min(ide-1,ipe)
-              rri(i,k,j)=grid%alt(i,k,j)
-            enddo
-         enddo
-      enddo
-      do j=jps,min(jde-1,jpe)
-         do i=ips,min(ide-1,ipe)
-            pbl_h(i,j)=grid%pblh(i,j)
-         enddo
-      enddo
+    vdrog3=0.
+    do j=jps,min(jde-1,jpe)
+       do k=kps,kpe
+          do i=ips,min(ide-1,ipe)
+            vvel(i,k,j)=grid%w_2(i,k,j)
+            zmid(i,k,j)=grid%z(i,k,j)
+          enddo
+       enddo
+    enddo
+    do j=jps,min(jde-1,jpe)
+       do k=kps,min(kde-1,kpe)
+          do i=ips,min(ide-1,ipe)
+            rri(i,k,j)=grid%alt(i,k,j)
+          enddo
+       enddo
+    enddo
+    do j=jps,min(jde-1,jpe)
+       do i=ips,min(ide-1,ipe)
+          pbl_h(i,j)=grid%pblh(i,j)
+       enddo
+    enddo
 
 !------------------------------------------------------------------------
 ! Main chemistry tile loop
@@ -411,30 +385,29 @@ subroutine chem_driver(grid, config_flags &
      
 !$OMP PARALLEL DO   &
 !$OMP PRIVATE ( ij, its, ite, jts, jte )
-   chem_tile_loop_1: DO ij = 1 , grid%num_tiles
-       its = grid%i_start(ij) 
-       ite = min(grid%i_end(ij),ide-1)
-       jts = grid%j_start(ij)
-       jte = min(grid%j_end(ij),jde-1) 
+  chem_tile_loop_1: DO ij = 1 , grid%num_tiles
+      its = grid%i_start(ij) 
+      ite = min(grid%i_end(ij),ide-1)
+      jts = grid%j_start(ij)
+      jte = min(grid%j_end(ij),jde-1) 
 
-       kts=k_start
-       kte=min(k_end,kde-1)
+      kts=k_start
+      kte=min(k_end,kde-1)
 
+      CALL wrf_debug ( 15 , ' call chem_prep' )
 
-!
-!
-         CALL wrf_debug ( 15 , ' call chem_prep' )
-         CALL chem_prep ( config_flags,                                               &
-                         grid%u_2, grid%v_2, grid%p, grid%pb,             &
-                         grid%alt,grid%ph_2, grid%phb, grid%t_2,          &
-                         moist, num_3d_m, rho,                                        &
-                         p_phy,  u_phy, v_phy,                                        &
-                         p8w, t_phy, t8w, grid%z, z_at_w,                          &
-                         dz8w, rh, grid%fnm, grid%fnp,                              &
-                         ids, ide, jds, jde, kds, kde,                                &
-                         ims, ime, jms, jme, kms, kme,                                &
-                         its,ite,jts,jte,                                             &
-                         k_start, k_end                                               )
+      !!! chem_prep @ module_chem_utilities.f !!!
+      CALL chem_prep (config_flags,                            &
+                     grid%u_2, grid%v_2, grid%p, grid%pb,     &
+                     grid%alt,grid%ph_2, grid%phb, grid%t_2,  &
+                     moist, num_3d_m, rho,                    &
+                     p_phy,  u_phy, v_phy,                    &
+                     p8w, t_phy, t8w, grid%z, z_at_w,         &
+                     dz8w, rh, grid%fnm, grid%fnp,            &
+                     ids, ide, jds, jde, kds, kde,            &
+                     ims, ime, jms, jme, kms, kme,            &
+                     its,ite,jts,jte,                         &
+                     k_start, k_end)
 
 #if (defined(CHEM_DBG_I) && defined(CHEM_DBG_J) && defined(CHEM_DBG_K))
        if( (its <= CHEM_DBG_I .and. ite >= CHEM_DBG_I) .and.                          &
@@ -450,81 +423,6 @@ subroutine chem_driver(grid, config_flags &
        end if
 #endif
 
-
-!--- emissions
-
-    if(config_flags%emiss_inpt_opt > 0 .or. config_flags%dust_opt > 0)then
-      call wrf_debug(15,'calling emissions driver')
-
-      call emissions_driver(grid%id,ktau,grid%dt,grid%DX,                                  &
-              adapt_step_flag, curr_secs,                                                  &
-              grid%plumerisefire_frq,grid%stepfirepl,                                      &
-              grid%bioemdt,grid%stepbioe,                                                  &
-              config_flags,                                                                &
-              grid%gmt,ijulian,rri,t_phy,moist,p8w,t8w,u_phy,v_phy,vvel,               &
-              grid%e_bio,p_phy,chem,rho,dz8w,grid%ne_area,emis_ant,emis_vol,grid%tsk,      &
-              grid%erod,grid%erod_dri,grid%lai_vegmask,                                    &
-              g,emis_seas,emis_dust,tracer,                                                &
-              ebu , ebu_in,grid%mean_fct_agtf,grid%mean_fct_agef,grid%mean_fct_agsv,       &
-              grid%mean_fct_aggr,grid%firesize_agtf, &
-              grid%firesize_agef,grid%firesize_agsv,grid%firesize_aggr,                    &
-              grid%u10,grid%v10,grid%ivgtyp,grid%isltyp,grid%gsw,grid%vegfra,grid%rmol,    &
-              grid%ust,grid%znt,grid%dms_0,grid%erup_beg,grid%erup_end,                    &
-              grid%xland,grid%xlat,grid%xlong,                                             &
-              z_at_w,zmid,grid%smois,dustin,seasin,                                        &
-              grid%sebio_iso,grid%sebio_oli,grid%sebio_api,grid%sebio_lim,                 &
-              grid%sebio_xyl,grid%sebio_hc3,grid%sebio_ete,grid%sebio_olt,                 &
-              grid%sebio_ket,grid%sebio_ald,grid%sebio_hcho,grid%sebio_eth,                &
-              grid%sebio_ora2,grid%sebio_co,grid%sebio_nr,                                 &
-              grid%sebio_sesq,grid%sebio_mbo,                                              &
-              grid%noag_grow,grid%noag_nongrow,grid%nononag,grid%slai,                     &
-              grid%ebio_iso,grid%ebio_oli,grid%ebio_api,grid%ebio_lim,grid%ebio_xyl,       &
-              grid%ebio_hc3,grid%ebio_ete,grid%ebio_olt,grid%ebio_ket,grid%ebio_ald,       &
-              grid%ebio_hcho,grid%ebio_eth,grid%ebio_ora2,grid%ebio_co,grid%ebio_nr,       &
-              grid%ebio_no,grid%ebio_sesq,grid%ebio_mbo,grid%ebio_bpi,grid%ebio_myrc,      &
-              grid%ebio_c10h16,grid%ebio_tol,grid%ebio_bigalk,                             &
-              grid%ebio_ch3oh,grid%ebio_acet,grid%ebio_nh3,grid%ebio_no2,                  &
-              grid%ebio_c2h5oh,grid%ebio_ch3cooh,grid%ebio_mek,grid%ebio_bigene,           &
-              grid%ebio_c2h6,grid%ebio_c2h4,grid%ebio_c3h6,grid%ebio_c3h8,grid%ebio_so2,   &
-              grid%ebio_dms,                                                               &
-              grid%ebio_alk3, grid%ebio_alk4, grid%ebio_alk5, grid%ebio_ole1, grid%ebio_ole2,            &    
-              grid%ebio_aro1, grid%ebio_aro2, grid%ebio_ccho, grid%ebio_meoh,             &    
-              grid%ebio_ethene, grid%ebio_hcooh, grid%ebio_terp, grid%ebio_bald,          &    
-              grid%ebio_cco_oh, grid%ebio_rco_oh,                                         &    
-              grid%clayfrac,grid%sandfrac,grid%dust_alpha,grid%dust_gamma,grid%dust_smtune, grid%dust_ustune, &
-              grid%clayfrac_nga,grid%sandfrac_nga,                                        &
-              grid%snowh,grid%zs,grid%afwa_dustloft,                                       &
-              grid%tot_dust,grid%tot_edust,grid%vis_dust,                                  &
-              grid%soilctop, grid%ust_t, grid%rough_cor, grid%smois_cor,                  &              
-              grid%ebio_c5h8,grid%ebio_apinene,grid%ebio_bpinene,grid%ebio_toluene,        &
-              grid%ebio_ch3cho,grid%ebio_ch3co2h,grid%ebio_tbut2ene,                      &
-              grid%ebio_c2h5cho,grid%ebio_nc4h10,                      &
-              grid%T2,grid%swdown,                                                         &
-              grid%nmegan,grid%EFmegan,                                                    &
-              grid%msebio_isop,                                                            &
-              grid%mlai,                                                                   &
-              grid%pftp_bt, grid%pftp_nt, grid%pftp_sb, grid%pftp_hb,                      &
-              grid%mtsa,                                                                   &
-              grid%mswdown,                                                                &
-              grid%mebio_isop,grid%mebio_apin,grid%mebio_bpin, grid%mebio_bcar,            &
-              grid%mebio_acet,grid%mebio_mbo,grid%mebio_no,                                &
-              current_month,                                                               &
-         ! stuff for LNOx emissions
-             grid%ht, grid%refl_10cm, grid%ic_flashrate, grid%cg_flashrate,                 &
-         ! stuff for aircraft emissions
-              emis_aircraft,                                                               &
-         ! stuff for the GHG fluxes
-              vprm_in,grid%rad_vprm,grid%lambda_vprm,                                      &
-              grid%alpha_vprm,grid%resp_vprm,grid%xtime,                                   &
-              grid%TSLB, wet_in,grid%RAINC,grid%RAINNC,                                    &
-              grid%potevp,grid%SFCEVP,grid%LU_INDEX,                                       &
-              grid%biomt_par,grid%emit_par,grid%ebio_co2oce,                               &
-              eghg_bio,                                                                    &
-              grid%dust_flux, grid%seas_flux,                                              &
-              ids,ide, jds,jde, kds,kde,                                                   &
-              ims,ime, jms,jme, kms,kme,                                                   &
-              its,ite,jts,jte,kts,kte)
-
 #if (defined(CHEM_DBG_I) && defined(CHEM_DBG_J) && defined(CHEM_DBG_K))
        if( (its <= CHEM_DBG_I .and. ite >= CHEM_DBG_I) .and.                          &
            (jts <= CHEM_DBG_J .and. jte >= CHEM_DBG_J) .and.                          &
@@ -537,153 +435,39 @@ subroutine chem_driver(grid, config_flags &
                its,ite, jts,jte, kts, kte,                                            &
                config_flags%kemit                                                     )
        end if
-#endif 
-     endif
-
-!
-! calculate aerosol optical properities
-!
-      if(do_photstep) then
-         call wrf_debug(15,'calling optical driver')
-         call optical_driver (grid%id,curr_secs,grid%dt,config_flags,haveaer,         &
-              chem,dz8w,rri,rh,                                                       &
-              grid%h2oai,grid%h2oaj,                                                  &
-              grid%tauaer1,grid%tauaer2,grid%tauaer3,grid%tauaer4,                    &
-              grid%extaer1,grid%extaer2,grid%extaer3,grid%extaer4,                    &
-              grid%gaer1,grid%gaer2,grid%gaer3,grid%gaer4,                            &
-              grid%waer1,grid%waer2,grid%waer3,grid%waer4,                            &
-              grid%bscoef1,grid%bscoef2,grid%bscoef3,grid%bscoef4,                    &
-              grid%l2aer,grid%l3aer,grid%l4aer,grid%l5aer,grid%l6aer,grid%l7aer,      &
-              grid%totoa_a01,grid%totoa_a02,grid%totoa_a03,grid%totoa_a04,            &
-              grid%extaerlw1,grid%extaerlw2,grid%extaerlw3,grid%extaerlw4,grid%extaerlw5, &
-              grid%extaerlw6,grid%extaerlw7,grid%extaerlw8,grid%extaerlw9,grid%extaerlw10, &
-              grid%extaerlw11,grid%extaerlw12,grid%extaerlw13,grid%extaerlw14,grid%extaerlw15, &
-              grid%extaerlw16,    &
-              grid%tauaerlw1,grid%tauaerlw2,grid%tauaerlw3,grid%tauaerlw4,grid%tauaerlw5,  &
-              grid%tauaerlw6,grid%tauaerlw7,grid%tauaerlw8,grid%tauaerlw9,grid%tauaerlw10,  &
-              grid%tauaerlw11,grid%tauaerlw12,grid%tauaerlw13,grid%tauaerlw14,grid%tauaerlw15,  &
-              grid%tauaerlw16,    &
-              ids,ide, jds,jde, kds,kde,                                              &
-              ims,ime, jms,jme, kms,kme,                                              &
-              its,ite, jts,jte, kts,kte)
-      endif
-
-!
-! calculate photolysis rates
-!
-      if(do_photstep) then
-         call wrf_debug(15,'calling photolysis driver')
-         call photolysis_driver (grid%id,curr_secs,ktau,grid%dt,                      &
-              config_flags,haveaer,                                                   &
-              grid%gmt,ijulian,t_phy,moist,grid%aerwrf,p8w,t8w,p_phy,             &
-              chem,rho,dz8w,grid%xlat,grid%xlong,                                     &
-              z_at_w,                                                                 &
-              grid%qc_cu,grid%qi_cu,                                                  &
-              grid%ph_macr,grid%ph_o31d,grid%ph_o33p,grid%ph_no2,grid%ph_no3o2,       &
-              grid%ph_no3o,grid%ph_hno2,grid%ph_hno3,grid%ph_hno4,grid%ph_h2o2,       &
-              grid%ph_ch2or,grid%ph_ch2om,grid%ph_ch3cho,grid%ph_ch3coch3,            &
-              grid%ph_ch3coc2h5,grid%ph_hcocho,grid%ph_ch3cocho,                      &
-              grid%ph_hcochest,grid%ph_ch3o2h,grid%ph_ch3coo2h,grid%ph_ch3ono2,       &
-              grid%ph_hcochob,grid%ph_n2o5,grid%ph_o2,grid%ph_n2o,                    &
-              grid%ph_pan,grid%ph_mpan,grid%ph_acetol,grid%ph_gly,                    &
-              grid%ph_open,grid%ph_mek,grid%ph_etooh,grid%ph_prooh,grid%ph_pooh,      &
-              grid%ph_acetp,grid%ph_xooh,grid%ph_isooh,grid%ph_alkooh,                &
-              grid%ph_mekooh,grid%ph_tolooh,grid%ph_terpooh,grid%ph_mvk,              &
-              grid%ph_glyald,grid%ph_hyac,                                            &
-              config_flags%track_tuv_lev,                                             &
-              config_flags%track_rad_num,                                             &
-              config_flags%track_tuv_num,                                             &
-              grid%radfld,grid%adjcoe,grid%phrate,                                    &
-              grid%track_wc,grid%track_zref,                                          &
-              grid%tauaer1,grid%tauaer2,grid%tauaer3,grid%tauaer4,                    &
-              grid%gaer1,grid%gaer2,grid%gaer3,grid%gaer4,                            &
-              grid%waer1,grid%waer2,grid%waer3,grid%waer4,                            &
-              grid%bscoef1,grid%bscoef2,grid%bscoef3,grid%bscoef4,                    &
-              grid%l2aer,grid%l3aer,grid%l4aer,grid%l5aer,grid%l6aer,grid%l7aer,      &
-              grid%pm2_5_dry,grid%pm2_5_water,grid%uvrad,grid%ivgtyp,                 &
-              ids,ide, jds,jde, kds,kde,                                              &
-              ims,ime, jms,jme, kms,kme,                                              &
-              its,ite,jts,jte,kts,kte)
+#endif
 
 #if (defined(CHEM_DBG_I) && defined(CHEM_DBG_J) && defined(CHEM_DBG_K))
-         if( (its <= CHEM_DBG_I .and. ite >= CHEM_DBG_I) .and. &
-             (jts <= CHEM_DBG_J .and. jte >= CHEM_DBG_J) .and. &
-             (k_start <= CHEM_DBG_K .and. k_end >= CHEM_DBG_K)  ) then
-          call wrf_debug(15,'calling chem_dbg after photolysis_driver')
-          call chem_dbg(CHEM_DBG_I,CHEM_DBG_J,CHEM_DBG_K,grid%dt,ktau,                &
-               dz8w,t_phy,p_phy,rho,chem,emis_ant,                                    &
-               ids,ide, jds,jde, kds,kde,                                             &
-               ims,ime, jms,jme, kms,kme,                                             &
-               its,ite, jts,jte, kts,kte,                                             &
-               config_flags%kemit,                                                    &
-               grid%ph_macr,grid%ph_o31d,grid%ph_o33p,grid%ph_no2,grid%ph_no3o2,      &
-               grid%ph_no3o,grid%ph_hno2,grid%ph_hno3,grid%ph_hno4,grid%ph_h2o2,      &
-               grid%ph_ch2or,grid%ph_ch2om,grid%ph_ch3cho,grid%ph_ch3coch3,           &
-               grid%ph_ch3coc2h5,grid%ph_hcocho,grid%ph_ch3cocho,                     &
-               grid%ph_hcochest,grid%ph_ch3o2h,grid%ph_ch3coo2h,                      &
-               grid%ph_ch3ono2,grid%ph_hcochob,grid%ph_n2o5,grid%ph_o2                &
-                                                                                      )
-       end if
+  if( (its <= CHEM_DBG_I .and. ite >= CHEM_DBG_I) .and. &
+         (jts <= CHEM_DBG_J .and. jte >= CHEM_DBG_J) .and. &
+         (k_start <= CHEM_DBG_K .and. k_end >= CHEM_DBG_K)  ) then
+      call wrf_debug(15,'calling chem_dbg after photolysis_driver')
+      call chem_dbg(CHEM_DBG_I,CHEM_DBG_J,CHEM_DBG_K,grid%dt,ktau,                &
+           dz8w,t_phy,p_phy,rho,chem,emis_ant,                                    &
+           ids,ide, jds,jde, kds,kde,                                             &
+           ims,ime, jms,jme, kms,kme,                                             &
+           its,ite, jts,jte, kts,kte,                                             &
+           config_flags%kemit,                                                    &
+           grid%ph_macr,grid%ph_o31d,grid%ph_o33p,grid%ph_no2,grid%ph_no3o2,      &
+           grid%ph_no3o,grid%ph_hno2,grid%ph_hno3,grid%ph_hno4,grid%ph_h2o2,      &
+           grid%ph_ch2or,grid%ph_ch2om,grid%ph_ch3cho,grid%ph_ch3coch3,           &
+           grid%ph_ch3coc2h5,grid%ph_hcocho,grid%ph_ch3cocho,                     &
+           grid%ph_hcochest,grid%ph_ch3o2h,grid%ph_ch3coo2h,                      &
+           grid%ph_ch3ono2,grid%ph_hcochob,grid%ph_n2o5,grid%ph_o2)
+   end if
 #endif
-      endif
 
-!
-! do vertical mixing with dry deposition
-!
 ! save old concentrations for vertical mixing tendencies
    DO nv = PARAM_FIRST_SCALAR,num_chem_ct
      chem_old(its:ite,kts:kte,jts:jte,nv) = chem(its:ite,kts:kte,jts:jte,chem_ct_indices(nv))
    ENDDO
 
-! UoC dust scheme option
-   scheme_select: SELECT CASE(config_flags%dust_schme)
-   CASE (SHAO_2001)
-     imod = 1
-   CASE (SHAO_2004)
-     imod = 2
-   CASE (SHAO_2011)
-     imod = 3
-   CASE DEFAULT
-     imod = 2
-   END SELECT scheme_select
-
-      if (config_flags%vertmix_onoff > 0) then
-         if (ktau .gt. 2) then
-            call wrf_debug(15,'calling dry_deposition_driver')
-            call dry_dep_driver(grid%id,curr_secs,ktau,grid%dt,config_flags,          &
-                 grid%gmt,ijulian,t_phy,moist,scalar,p8w,t8w,vvel,                &
-                 rri,p_phy,chem,tracer,rho,dz8w,rh,grid%exch_h,grid%hfx,grid%dx,      & 
-                 grid%cldfra, grid%cldfra_old,grid%raincv_b,seasin,dustin,            &
-                 grid%ccn1, grid%ccn2, grid%ccn3, grid%ccn4, grid%ccn5, grid%ccn6,    &
-                 grid%qndropsource,grid%ivgtyp,grid%tsk,grid%gsw,grid%vegfra,pbl_h,   &
-                 grid%rmol,grid%ust,grid%znt,grid%xlat,grid%xlong,                    &
-                 zmid,z_at_w,grid%xland,grid%ash_fall,                                &
-                 grid%h2oaj,grid%h2oai,grid%nu3,grid%ac3,grid%cor3,grid%asulf,        &
-                 grid%ahno3,grid%anh3,grid%cvaro1,grid%cvaro2,grid%cvalk1,grid%cvole1,&
-                 grid%cvapi1,grid%cvapi2,grid%cvlim1,grid%cvlim2,grid%dep_vel_o3,     &
-                 emis_ant,ebu_in,                                                     &
-                 config_flags%sf_urban_physics,numgas,current_month,dvel,grid%snowh,  &
-                 grid%dustdrydep_1,grid%dustdrydep_2,grid%dustdrydep_3,               &
-                 grid%dustdrydep_4,grid%dustdrydep_5,                                 &      
-                 grid%depvelocity,                                                    &      
-                 grid%dustgraset_1,grid%dustgraset_2,grid%dustgraset_3,               &
-                 grid%dustgraset_4,grid%dustgraset_5,                                 &
-                 grid%setvel_1,grid%setvel_2,grid%setvel_3,grid%setvel_4,             &
-                 grid%setvel_5, imod,                                                 &                  
-                 grid%is_CAMMGMP_used,                                                &
-                 grid%dep_vel,grid%num_vert_mix,                                      &
-                 ids,ide, jds,jde, kds,kde,                                           &
-                 ims,ime, jms,jme, kms,kme,                                           &
-                 its,ite,jts,jte,kts,kte)
-            end if
-         end if
-         
 ! accumulate vertical mixing tendencies
-   DO nv = PARAM_FIRST_SCALAR,num_chem_ct
-      grid%vmix_ct(its:ite,kts:kte,jts:jte,nv) = grid%vmix_ct(its:ite,kts:kte,jts:jte,nv) + &
-                                                        (chem(its:ite,kts:kte,jts:jte,chem_ct_indices(nv)) - &
-                                                     chem_old(its:ite,kts:kte,jts:jte,nv))
-   ENDDO
+!   DO nv = PARAM_FIRST_SCALAR,num_chem_ct
+!      grid%vmix_ct(its:ite,kts:kte,jts:jte,nv) = grid%vmix_ct(its:ite,kts:kte,jts:jte,nv) + &
+!                                                        (chem(its:ite,kts:kte,jts:jte,chem_ct_indices(nv)) - &
+!                                                     chem_old(its:ite,kts:kte,jts:jte,nv))
+!  ENDDO
 
 #if (defined(CHEM_DBG_I) && defined(CHEM_DBG_J) && defined(CHEM_DBG_K))
        if( (its <= CHEM_DBG_I .and. ite >= CHEM_DBG_I) .and. &
@@ -715,51 +499,20 @@ subroutine chem_driver(grid, config_flags &
 
         !! -- Stubbed out: do_chemstep (used to call mechanism_driver) -- !!
 
-     end if !Chemistry time step check
-
-!
-! Sum up the aerosol mass for radiation and diagnostic purposes. Unlike
-! aerosol_driver, which is called every dtchem, this must be done every
-! time step because of emissions and deposition.
-!
-      call sum_pm_driver ( config_flags,                                              &
-           rri, chem, grid%h2oaj, grid%h2oai,                                         &
-           grid%pm2_5_dry, grid%pm2_5_water, grid%pm2_5_dry_ec, grid%pm10,            &
-           grid% hoa_a01,grid%hoa_a02,grid%hoa_a03,grid%hoa_a04,                      &
-           grid%bboa_a01,grid%bboa_a02,grid%bboa_a03,grid%bboa_a04,                   &
-           grid%soa_a01,grid%soa_a02,grid%soa_a03,grid%soa_a04,                       &
-           grid%bbsoa_a01,grid%bbsoa_a02,grid%bbsoa_a03,grid%bbsoa_a04,               &
-           grid%hsoa_a01,grid%hsoa_a02,grid%hsoa_a03,grid%hsoa_a04,                   &
-           grid%biog_a01,grid%biog_a02,grid%biog_a03,grid%biog_a04,                   &
-           grid%asmpsoa_a01,grid%asmpsoa_a02,grid%asmpsoa_a03,grid%asmpsoa_a04,       &
-           grid%arosoa_a01,grid%arosoa_a02,grid%arosoa_a03,grid%arosoa_a04,           &
-           grid%totoa_a01,grid%totoa_a02,grid%totoa_a03,grid%totoa_a04,               &
-           grid%hsoa_c,grid%hsoa_o,grid%bbsoa_c,grid%bbsoa_o,                         &
-           grid%biog_v1,grid%biog_v2,grid%biog_v3,grid%biog_v4,                       &
-           grid%ant_v1,grid%ant_v2,grid%ant_v3,grid%ant_v4,                           &
-           grid%smpa_v1,grid%smpbb_v1,                                                &
-           ids,ide, jds,jde, kds,kde,                                                 &
-           ims,ime, jms,jme, kms,kme,                                                 &
-           its,ite, jts,jte, kts,kte                                                  )
-             
-     call dust_load_driver ( config_flags,                                            &
-           rri, chem, dz8w, grid%dustload_1, grid%dustload_2, grid%dustload_3,        &
-           grid%dustload_4, grid%dustload_5,                                          &
-           ids,ide, jds,jde, kds,kde,                                                 &
-           ims,ime, jms,jme, kms,kme,                                                 &
-           its,ite, jts,jte, kts, kte                                                 )
-
+     end if ! Chemistry time step check
 
 ! Fill top level to prevent spurious interpolation results (no extrapolation)
-      do nv=1,num_chem
-         do j=jts,jte
-            do i=its,ite
-                  chem(i,k_end,j,nv)=chem(i,kte,j,nv)
-            enddo
-         enddo
-      enddo
-      call wrf_debug(15,'done tileloop in chem_driver')
-   if( grid%OPT_PARS_OUT == 1) then
+    do nv=1,num_chem
+       do j=jts,jte
+          do i=its,ite
+                chem(i,k_end,j,nv)=chem(i,kte,j,nv)
+          enddo
+       enddo
+    enddo
+
+    call wrf_debug(15,'done tileloop in chem_driver')
+   
+    if( grid%OPT_PARS_OUT == 1) then
       call wrf_debug(15,'calculate optical output stuff')
       call aer_opt_out(TAUAER300=grid%tauaer1, TAUAER400=grid%tauaer2                            & 
      &        ,TAUAER600=grid%tauaer3, TAUAER999=grid%tauaer4                                    &
@@ -773,16 +526,7 @@ subroutine chem_driver(grid, config_flags &
      &        ,its=its,ite=ite,jts=jts,jte=jte,kts=kts, kte=kte                                  )
 
 
-   endif
-   tracer2: SELECT CASE(config_flags%tracer_opt)
-    CASE (TRACER_TEST1, TRACER_TEST2, TRACER_TEST3)
-       CALL wrf_debug(15,'tracer mode: reset some tracers')
-       call set_tracer(grid%dt,ktau,pbl_h,tracer,t_phy,         &
-                        config_flags%tracer_opt,num_tracer,     &
-                       zmid,grid%ht,ids,ide, jds,jde, kds,kde,  & ! domain dims
-                               ims,ime, jms,jme, kms,kme,       & ! memory dims
-                               its,ite, jts,jte, kts,kte )
-   END SELECT tracer2
+    endif
 
 !-- set upper boundary condition
     if( config_flags%have_bcs_upper )then
@@ -800,19 +544,17 @@ subroutine chem_driver(grid, config_flags &
                                its,ite, jts,jte, kts,kte            )
     endif
 
-
    END DO chem_tile_loop_1
 
 !-- Work around for dgnum and dgnumwet not being written to restart files.
 !-- NOTE hplin 2/20/2018: Might need to stub this out for WRF to operate correctly (3.6.1)
-   
-   grid%dgnum_a1(its:ite, kts:kte, jts:jte) = grid%dgnum4d(its:ite, kts:kte, jts:jte, 1)
-   grid%dgnum_a2(its:ite, kts:kte, jts:jte) = grid%dgnum4d(its:ite, kts:kte, jts:jte, 2)
-   grid%dgnum_a3(its:ite, kts:kte, jts:jte) = grid%dgnum4d(its:ite, kts:kte, jts:jte, 3)
-   
-   grid%dgnumwet_a1(its:ite, kts:kte, jts:jte) = grid%dgnumwet4d(its:ite, kts:kte, jts:jte, 1)
-   grid%dgnumwet_a2(its:ite, kts:kte, jts:jte) = grid%dgnumwet4d(its:ite, kts:kte, jts:jte, 2)
-   grid%dgnumwet_a3(its:ite, kts:kte, jts:jte) = grid%dgnumwet4d(its:ite, kts:kte, jts:jte, 3)
+! grid%dgnum_a1(its:ite, kts:kte, jts:jte) = grid%dgnum4d(its:ite, kts:kte, jts:jte, 1)
+! grid%dgnum_a2(its:ite, kts:kte, jts:jte) = grid%dgnum4d(its:ite, kts:kte, jts:jte, 2)
+! grid%dgnum_a3(its:ite, kts:kte, jts:jte) = grid%dgnum4d(its:ite, kts:kte, jts:jte, 3)
+
+! grid%dgnumwet_a1(its:ite, kts:kte, jts:jte) = grid%dgnumwet4d(its:ite, kts:kte, jts:jte, 1)
+! grid%dgnumwet_a2(its:ite, kts:kte, jts:jte) = grid%dgnumwet4d(its:ite, kts:kte, jts:jte, 2)
+! grid%dgnumwet_a3(its:ite, kts:kte, jts:jte) = grid%dgnumwet4d(its:ite, kts:kte, jts:jte, 3)
 
 
-    END subroutine chem_driver
+END subroutine chem_driver
