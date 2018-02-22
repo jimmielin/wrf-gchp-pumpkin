@@ -54,10 +54,6 @@
       USE module_aerosols_sorgam
       USE module_aerosols_soa_vbs, only:aerosols_soa_vbs_init
       USE module_dep_simple
-      USE module_data_gocart_dust
-      USE module_data_gocart_seas
-      USE module_data_gocartchem
-      USE module_gocart_chem ! , only: szangle
       USE module_input_chem_data, only:get_last_gas, &
          gasprofile_init_pnnl, &
          mozcart_lbc_init, &
@@ -66,7 +62,7 @@
       USE module_mixactivate_wrappers, only:mosaic_mixactivate_init
       USE module_upper_bc_driver, only:upper_bc_init
       USE module_tropopause, only:tropopause_init
-      
+
       USE module_cam_support, only:numgas_mam, gas_pcnst_modal_aero, gas_pcnst_modal_aero_pos !BSINGH - Fix for non-MAM simulations
       IMPLICIT NONE
 
