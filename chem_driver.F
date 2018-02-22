@@ -344,7 +344,7 @@ CASE DEFAULT
    call wrf_error_fatal("Pumpkin chem_driver: Unrecognized chem_opt")
    END SELECT chem_select
 
-   do nv = 1, num_chema
+   do nv = 1, num_chem
       do j = jps, jpe
          do k = kps, kpe
             do i = ips, ipe
@@ -486,8 +486,6 @@ CASE DEFAULT
                        )
       end if
 #endif
-
-   end if
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!  CHEMISTRY DRIVER/ MECHANISM (do_timestep)
