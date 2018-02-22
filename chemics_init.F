@@ -349,8 +349,6 @@
   aer_select: SELECT CASE(config_flags%chem_opt)
    CASE (GOCARTRACM_KPP, GOCARTRADM2)
       CALL wrf_debug(15, 'call GOCARTRACM_KPP chem/aerosols initialization')
-      ch_dust(:, :) = 0.8D-9
-      ch_ss(:, :) = 1.
       if (config_flags%chem_in_opt == 0) then
          if (.NOT. config_flags%restart) then
             do j = jts, jte
@@ -410,8 +408,6 @@
             enddo
          enddo
       enddo
-      ! ch_dust(:, :) = 0.8D-9
-      ! ch_ss(:, :) = 1.
 
 !
 ! Initialize the cloud droplet number and mass
