@@ -21,56 +21,55 @@
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-   subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, stepbioe, &
-                        stepphot, stepchem, stepfirepl, plumerisefire_frq, z_at_w, xlat, xlong, &
-                        g, aerwrf, config_flags, grid, alt, t, p, CONVFAC, ttday, tcosz, julday, gmt, &
-                        tauaer1, tauaer2, tauaer3, tauaer4, &
-                        gaer1, gaer2, gaer3, gaer4, &
-                        waer1, waer2, waer3, waer4, &
-                        l2aer, l3aer, l4aer, l5aer, l6aer, l7aer, &
-                        extaerlw1, extaerlw2, extaerlw3, extaerlw4, &
-                        extaerlw5, extaerlw6, extaerlw7, extaerlw8, &
-                        extaerlw9, extaerlw10, extaerlw11, extaerlw12, &
-                        extaerlw13, extaerlw14, extaerlw15, extaerlw16, &
-                        tauaerlw1, tauaerlw2, tauaerlw3, tauaerlw4, &
-                        tauaerlw5, tauaerlw6, tauaerlw7, tauaerlw8, &
-                        tauaerlw9, tauaerlw10, tauaerlw11, tauaerlw12, &
-                        tauaerlw13, tauaerlw14, tauaerlw15, tauaerlw16, &
-                        dgnum4d, dgnumwet4d, dgnum_a1, dgnum_a2, dgnum_a3, &
-                        dgnumwet_a1, dgnumwet_a2, dgnumwet_a3, &
-                        pm2_5_dry, pm2_5_water, pm2_5_dry_ec, &
-                        last_chem_time_year, last_chem_time_month, &
-                        last_chem_time_day, last_chem_time_hour, &
-                        last_chem_time_minute, last_chem_time_second, &
-                        chem_in_opt, kemit, num_vert_mix, &
-                        ids, ide, jds, jde, kds, kde, &
-                        ims, ime, jms, jme, kms, kme, &
-                        its, ite, jts, jte, kts, kte)
+subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, stepbioe, &
+                    stepphot, stepchem, stepfirepl, plumerisefire_frq, z_at_w, xlat, xlong, &
+                    g, aerwrf, config_flags, grid, alt, t, p, CONVFAC, ttday, tcosz, julday, gmt, &
+                    tauaer1, tauaer2, tauaer3, tauaer4, &
+                    gaer1, gaer2, gaer3, gaer4, &
+                    waer1, waer2, waer3, waer4, &
+                    l2aer, l3aer, l4aer, l5aer, l6aer, l7aer, &
+                    extaerlw1, extaerlw2, extaerlw3, extaerlw4, &
+                    extaerlw5, extaerlw6, extaerlw7, extaerlw8, &
+                    extaerlw9, extaerlw10, extaerlw11, extaerlw12, &
+                    extaerlw13, extaerlw14, extaerlw15, extaerlw16, &
+                    tauaerlw1, tauaerlw2, tauaerlw3, tauaerlw4, &
+                    tauaerlw5, tauaerlw6, tauaerlw7, tauaerlw8, &
+                    tauaerlw9, tauaerlw10, tauaerlw11, tauaerlw12, &
+                    tauaerlw13, tauaerlw14, tauaerlw15, tauaerlw16, &
+                    dgnum4d, dgnumwet4d, dgnum_a1, dgnum_a2, dgnum_a3, &
+                    dgnumwet_a1, dgnumwet_a2, dgnumwet_a3, &
+                    pm2_5_dry, pm2_5_water, pm2_5_dry_ec, &
+                    last_chem_time_year, last_chem_time_month, &
+                    last_chem_time_day, last_chem_time_hour, &
+                    last_chem_time_minute, last_chem_time_second, &
+                    chem_in_opt, kemit, num_vert_mix, &
+                    ids, ide, jds, jde, kds, kde, &
+                    ims, ime, jms, jme, kms, kme, &
+                    its, ite, jts, jte, kts, kte)
 
+      ! WRF Core Dependencies
       USE module_domain
       USE module_configure
       USE module_state_description
 
+      ! WRF Physics Dependencies
+      USE module_cam_support, only:numgas_mam, gas_pcnst_modal_aero, gas_pcnst_modal_aero_pos !BSINGH - Fix for non-MAM simulations
+
       USE module_aerosols_sorgam
-      USE module_aerosols_soa_vbs, only:aerosols_soa_vbs_init
       USE module_dep_simple
       USE module_input_chem_data, only:get_last_gas, &
          gasprofile_init_pnnl, &
          mozcart_lbc_init, &
          last_chem_time, &
          setup_gasprofile_maps
-      USE module_mixactivate_wrappers, only:mosaic_mixactivate_init
-      USE module_upper_bc_driver, only:upper_bc_init
-      USE module_tropopause, only:tropopause_init
 
-      USE module_cam_support, only:numgas_mam, gas_pcnst_modal_aero, gas_pcnst_modal_aero_pos !BSINGH - Fix for non-MAM simulations
       IMPLICIT NONE
 
       real, intent(in) :: bioemdt, photdt, chemdt, dt, gmt
-      INTEGER, INTENT(IN) :: plumerisefire_frq
-      INTEGER, INTENT(IN) :: chem_in_opt
-      INTEGER, INTENT(INOUT) :: num_vert_mix
-      INTEGER, INTENT(IN) :: id, julday, kemit, &
+      integer, intent(IN) :: plumerisefire_frq
+      integer, intent(IN) :: chem_in_opt
+      integer, intent(INOUT) :: num_vert_mix
+      integer, intent(IN) :: id, julday, kemit, &
                              last_chem_time_year, &
                              last_chem_time_month, &
                              last_chem_time_day, &
@@ -80,8 +79,8 @@
                              ids, ide, jds, jde, kds, kde, &
                              ims, ime, jms, jme, kms, kme, &
                              its, ite, jts, jte, kts, kte
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), &
-         INTENT(INOUT) :: &
+      real, dimension(ims:ime, kms:kme, jms:jme), &
+         intent(INOUT) :: &
          pm2_5_dry, pm2_5_water, pm2_5_dry_ec, &
          tauaer1, tauaer2, tauaer3, tauaer4, &
          extaerlw1, extaerlw2, extaerlw3, extaerlw4, &
@@ -94,47 +93,48 @@
          tauaerlw13, tauaerlw14, tauaerlw15, tauaerlw16, &
          gaer1, gaer2, gaer3, gaer4, &
          waer1, waer2, waer3, waer4
+
 !-- Arrays needed to output dgnum when restarting
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme, 3), &
-         INTENT(INOUT) :: &
+      real, dimension(ims:ime, kms:kme, jms:jme, 3), &
+         intent(INOUT) :: &
          dgnum4d, dgnumwet4d
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), &
-         INTENT(INOUT) :: &
+      real, dimension(ims:ime, kms:kme, jms:jme), &
+         intent(INOUT) :: &
          dgnum_a1, dgnum_a2, dgnum_a3, &
          dgnumwet_a1, dgnumwet_a2, dgnumwet_a3
 !-- end dgnum restart arrays
 
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme, 1:4), &
-         INTENT(INOUT) :: &
+      real, dimension(ims:ime, kms:kme, jms:jme, 1:4), &
+         intent(INOUT) :: &
          l2aer, l3aer, l4aer, l5aer, l6aer, l7aer
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), &
-         INTENT(IN) :: &
+      real, dimension(ims:ime, kms:kme, jms:jme), &
+         intent(IN) :: &
          z_at_w, t, p, alt, convfac
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme, num_chem), &
-         INTENT(INOUT) :: &
+      real, dimension(ims:ime, kms:kme, jms:jme, num_chem), &
+         intent(INOUT) :: &
          chem
-      REAL, DIMENSION(ims:ime, 1:kemit, jms:jme, num_emis_ant), &
-         INTENT(INOUT) :: &
+      real, dimension(ims:ime, 1:kemit, jms:jme, num_emis_ant), &
+         intent(INOUT) :: &
          emis_ant
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme, num_scalar), &
-         INTENT(INOUT) :: &
+      real, dimension(ims:ime, kms:kme, jms:jme, num_scalar), &
+         intent(INOUT) :: &
          scalar
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), &
-         INTENT(INOUT) :: &
+      real, dimension(ims:ime, kms:kme, jms:jme), &
+         intent(INOUT) :: &
          aerwrf
-      REAL, DIMENSION(ims:ime, jms:jme), &
-         INTENT(INOUT) :: &
+      real, dimension(ims:ime, jms:jme), &
+         intent(INOUT) :: &
          ttday, tcosz, xlat, xlong
-      real, INTENT(IN) :: g
+      real, intent(IN) :: g
       integer, intent(out) :: stepbioe, stepphot, stepchem, stepfirepl
-      TYPE(grid_config_rec_type), INTENT(in) ::     config_flags
-      TYPE(domain), INTENT(inout) ::     grid
+      type(grid_config_rec_type), intent(in) :: config_flags
+      type(domain), intent(inout) :: grid
 
-      CHARACTER*256 :: mminlu_loc
-      CHARACTER*256 :: message_txt
-      TYPE(WRFU_TimeInterval) :: tmpTimeInterval
+      character*256 :: mminlu_loc
+      character*256 :: message_txt
+      type(WRFU_TimeInterval) :: tmpTimeInterval
       integer :: i, j, k, l, numgas, ixhour, n, ndystep, kk, nv
-      real, DIMENSION(1, 1) :: sza, cosszax
+      real, dimension(1, 1) :: sza, cosszax
       real :: xtime, xhour, xmin, gmtp, xlonn, rlat
 
 #ifdef CHEM_DBG_I
@@ -157,33 +157,31 @@
 
       chem_select: SELECT CASE(config_flags%chem_opt)
       CASE (1)
-        CALL wrf_debug(15, 'calling only gocart aerosols driver from chem_driver')
+        CALL wrf_debug(15, 'chemics_init: Initializing GCHP Chemistry Driver from chem_select')
       END SELECT chem_select
 
       ! WRF-Chem used to perform configuration flags validation here.
       ! This can be done too in the future to prevent "gotchas"
 
       IF (config_flags%chem_opt == 0 .AND. config_flags%aer_ra_feedback .NE. 0) THEN
-!       config_flags%aer_ra_feedback = 0
-         call wrf_error_fatal(" ERROR: CHEM_INIT: FOR CHEM_OPT = 0, AER_RA_FEEDBACK MUST = 0 ")
+         call wrf_error_fatal("chemics_init: If no chemistry, aer_ra_feedback must be 0")
       ENDIF
 
       CALL nl_get_mminlu(1, mminlu_loc)
 
       IF (trim(mminlu_loc) /= 'USGS' .and. trim(mminlu_loc) /= 'MODIFIED_IGBP_MODIS_NOAH') THEN
          print *, mminlu_loc
-         message_txt = "ERROR: CHEM_INIT: Chemistry routines require USGS or MODIS_NOAH land use maps."
+         message_txt = "chemics_init: Chemistry routines require USGS or MODIS_NOAH land use maps."
          call wrf_error_fatal(trim(message_txt))
       ELSE
          IF (trim(mminlu_loc) == 'USGS' .and. grid%num_land_cat <= 23) THEN
-            message_txt = " ERROR: CHEM_INIT: USGS land use map should have 24 or more categories."
+            message_txt = "chemics_init: USGS land use map should have 24 or more categories."
             call wrf_error_fatal(trim(message_txt))
          ELSEIF (trim(mminlu_loc) == 'MODIFIED_IGBP_MODIS_NOAH' .and. grid%num_land_cat <= 19) THEN
-            message_txt = " ERROR: CHEM_INIT: MODIS_NOAH land use map should have 20 or more categories."
+            message_txt = "chemics_init: MODIS_NOAH land use map should have 20 or more categories."
             call wrf_error_fatal(trim(message_txt))
          ENDIF
       ENDIF
-!--
 
 !-- Load dgnum arrays when restart is active
       IF (config_flags%restart) THEN
@@ -289,9 +287,21 @@
          end do
       end if
 
+! Catch some unsupported options.
+! In early development, 
+      if (config_flags%progn > 0) then
+         call wrf_error_fatal("chemics_init: progn > 0 option is not supported by this Chemistry abstraction layer.")
+      endif
+
+      if (config_flags%have_bcs_upper) then
+         call wrf_error_fatal("chemics_init: have_bcs_upper = .true. is not supported by this Chemistry abstraction layer.")
+      endif
 
 ! Don't run if there isn't anything to do...
-      if(config_flags%chem_opt == 0) return
+      if(config_flags%chem_opt == 0) then
+        CALL wrf_debug(15, 'chemics_init: **** NO CHEMISTRY IS USED IN THIS WRF RUN ****')
+        return
+      endif
 
 ! Set the num_vert_mix variable if using ACM
       num_vert_mix = 0
@@ -324,10 +334,7 @@
 !
       call setup_gasprofile_maps(config_flags%chem_opt, numgas)
 
-!
-! initialization for aerosols
-!
-
+! AEROSOL INITIALIZATION
 ! Technically, we are doing a no-no here. The array is_aerosol is being
 ! "re-allocated" and overwritten by each domain. Therefore, if different
 ! chemistry settings are used for each nest level, we will get errors. I
@@ -354,9 +361,6 @@
             do j = jts, jte
                do k = kts, kte
                   do i = its, ite
-!                  do n=1,num_chem
-!                    chem(i,k,j,n)=1.e-12
-!                  enddo
                      chem(i, k, j, p_dms) = 0.1e-6
                      chem(i, k, j, p_so2) = 5.e-6
                      chem(i, k, j, p_sulf) = 3.e-6
@@ -410,15 +414,6 @@
       enddo
 
 !
-! Initialize the cloud droplet number and mass
-!
-      if ((.not. config_flags%restart) .and. (config_flags%progn > 0)) then
-         call mosaic_mixactivate_init( &
-            config_flags, chem, scalar, &
-            ims, ime, jms, jme, kms, kme, &
-            its, ite, jts, jte, kts, kte)
-      end if
-!
 ! Setup time info for chemistry
 !
       if (config_flags%restart) then
@@ -444,108 +439,8 @@
          last_chem_time(id) = domain_get_current_time(grid) - tmpTimeInterval
       end if
 
-!
-!-- initialization upper boundary and tropopause modules
-!
-      if (config_flags%have_bcs_upper) then
-         CALL wrf_debug(00, 'call upper boundary initialization')
-         call upper_bc_init(id, xlat, dt, config_flags, &
-                            ids, ide, jds, jde, kds, kde, &
-                            ims, ime, jms, jme, kms, kme, &
-                            its, ite, jts, jte, kts, kte)
-
-         call tropopause_init(id, xlat, xlong, config_flags, &
-                              ids, ide, jds, jde, kds, kde, &
-                              ims, ime, jms, jme, kms, kme, &
-                              its, ite, jts, jte, kts, kte)
-      end if
       gas_pcnst_modal_aero_pos = max(1, gas_pcnst_modal_aero) !BSINGH - Fix for non-MAM simulations
-   END SUBROUTINE chem_init
-
-!---------------------------------------------------------------------------------------------
-!Subroutine initializes VPRM parameters based on namelist option for "vprm_opt"
-!
-   SUBROUTINE VPRM_par_initialize(rad_vprm, lambda_vprm, alpha_vprm, resp_vprm, config_flags)
-
-      USE module_configure, only:grid_config_rec_type
-
-! VPRM parameters initialization section
-      IMPLICIT NONE
-
-      REAL, DIMENSION(8), INTENT(OUT) ::  rad_vprm, lambda_vprm, alpha_vprm, resp_vprm
-      REAL, DIMENSION(8, 4)    ::  vprm_table_us, vprm_table_europe, vprm_table_tropics, vprm_par
-
-      DATA vprm_table_us &
-         /261.0, 324.0, 206.0, 363.0, 682.0, 757.0, 157.0, 0.0, &
-         -0.2492, -0.1729, -0.2555, -0.08736, -0.1141, -0.15330, -0.13335, 0.00000, &
-         0.3301, 0.3258, 0.3422, 0.0239, 0.0049, 0.2680, 0.0269, 0.0000, &
-         0., 0., 0., 0., 0., 0., 0., 0./
-
-      DATA vprm_table_europe &
-         /270.2, 271.4, 236.6, 363.0, 682.0, 690.3, 229.1, 0.0, &
-         -0.3084, -0.1955, -0.2856, -0.0874, -0.1141, -0.1350, -0.1748, 0.0000, &
-         0.1797, 0.1495, 0.2258, 0.0239, 0.0049, 0.1699, 0.0881, 0.0000, &
-         0.8800, 0.8233, 0.4321, 0.0000, 0.0000, -0.0144, 0.5843, 0.0000/
-
-! Tropics are still preliminary, too strong SWDOWN might cause too high uptake
-      DATA vprm_table_tropics &
-         /501.0, 324.0, 206.0, 303.0, 682.0, 646.0, 157.0, 0.0, &
-         -0.2101, -0.1729, -0.2555, -0.0874, -0.1141, -0.1209, -0.1334, 0.0000, &
-         0.1601, 0.3258, 0.3422, 0.0239, 0.0049, 0.0043, 0.0269, 0.0000, &
-         0., 0., 0., 0., 0., 0., 0., 0./
-
-      TYPE(grid_config_rec_type), INTENT(IN) :: config_flags
-
-      sel_pars:SELECT CASE(config_flags%vprm_opt)
-   CASE ('VPRM_table_US')
-      vprm_par = vprm_table_us
-   CASE ('VPRM_table_EUROPE')
-      vprm_par = vprm_table_europe
-   CASE ('VPRM_table_TROPICS')
-      vprm_par = vprm_table_tropics
-   CASE DEFAULT
-      CALL wrf_message("check vprm_opt in namelist.input")
-      CALL wrf_error_fatal("NO PARAMETER TABLE IS INCLUDED FOR THIS VPRM TABLE OPTION!")
-      END SELECT sel_pars
-
-      rad_vprm = vprm_par(1:8, 1)
-      lambda_vprm = vprm_par(1:8, 2)
-      alpha_vprm = vprm_par(1:8, 3)
-      resp_vprm = vprm_par(1:8, 4)
-
-   END SUBROUTINE VPRM_par_initialize
-!******************************************************************************
-!
-   SUBROUTINE termite_initialize(biom, emch4, config_flags)
-!Subroutine initializes the termite emission parameters provided by Sanderson et al. 1996
-! parameters for termite emission initialization
-
-      USE module_configure, only:grid_config_rec_type
-
-      IMPLICIT NONE
-
-      REAL, DIMENSION(14, 3)   ::  term_em
-      REAL, DIMENSION(14)     ::  biom, emch4
-
-      DATA term_em &
-         /11.0, 8.0, 11.26, 3.0, 0.96, 10.6, 5.2, 0.98, 8.43, 5.38, 2.25, 5.3, 2.7, 5.3, &
-         5.64, 5.64, 5.64, 1.77, 2.9, 3.2, 1.77, 2.9, 3.2, 3.0, 3.0, 4.13, 4.13, 4.13, &
-         6.16, 6.16, 6.16, 1.77, 7.60, 7.00, 1.77, 7.60, 7.0, 3.9, 3.9, 4.13, 4.13, 4.13/
-
-      TYPE(grid_config_rec_type), INTENT(IN) :: config_flags
-
-      sel_pars:SELECT CASE(config_flags%term_opt)
-   CASE ('CH4_termite_NW')
-      biom = term_em(1:14, 1)
-      emch4 = term_em(1:14, 2)
-   CASE ('CH4_termite_OW')
-      biom = term_em(1:14, 1)
-      emch4 = term_em(1:14, 3)
-   CASE DEFAULT
-      CALL wrf_error_fatal("NO PARAMETER TABLE IS INCLUDED FOR THIS TERMITE CH4 OPTION!")
-      END SELECT sel_pars
-
-   END SUBROUTINE termite_initialize
+END SUBROUTINE chem_init
 
 !-----------------------------------------------------------------------
 !  CHEMISTRY DEBUG: print_chem_species_index(chem_opt)
