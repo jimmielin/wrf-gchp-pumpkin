@@ -33,40 +33,35 @@ subroutine chem_driver(grid, config_flags &
    USE module_model_constants
    USE module_state_description
 
+   !! WRF Physics/Chemistry Interfaces
+   USE modal_aero_data, only:ntot_amode_cam_mam => ntot_amode
+   USE module_cam_support, only:gas_pcnst => gas_pcnst_modal_aero, &
+                                             gas_pcnst_pos => gas_pcnst_modal_aero_pos, &
+                                                              pcnst => pcnst_runtime, numgas_mam, cam_mam_aerosols
+
+
    !! Chemistry Stub Interfaces
    USE module_data_radm2
    USE module_data_sorgam
    USE module_radm
    USE module_dep_simple
    USE module_bioemi_simple
-   USE module_phot_mad
-   USE module_ftuv_driver, only:ftuv_timestep_init
    USE module_aerosols_sorgam
    USE module_chem_utilities
    USE module_gocart_so2so4
    USE module_aer_opt_out, only:aer_opt_out
    USE module_ctrans_grell
-   USE module_data_soa_vbs, only:ldrog_vbs
    USE module_dust_load
    USE module_dry_dep_driver
    USE module_emissions_driver
-   USE module_input_tracer, only:set_tracer
-   USE module_wetscav_driver, only:wetscav_driver
-   USE module_wetdep_ls, only:wetdep_ls
    USE module_input_chem_data, only:last_chem_time, &
 #if (defined(CHEM_DBG_I) && defined(CHEM_DBG_J) && defined(CHEM_DBG_K))
                                     chem_dbg, &
 #endif
-      get_last_gas, mozcart_lbc_set
+      get_last_gas
 
    USE module_upper_bc_driver, only:upper_bc_driver
    USE module_tropopause, only:tropopause_driver
-   USE modal_aero_data, only:ntot_amode_cam_mam => ntot_amode
-   USE module_cam_support, only:gas_pcnst => gas_pcnst_modal_aero, &
-                                             gas_pcnst_pos => gas_pcnst_modal_aero_pos, &
-                                                              pcnst => pcnst_runtime, numgas_mam, cam_mam_aerosols
-   USE module_cu_camzm_driver, only:zm_conv_tend_2
-   USE module_cam_mam_gas_wetdep_driver, only:cam_mam_gas_wetdep_driver
 
    IMPLICIT NONE
 
@@ -93,28 +88,24 @@ subroutine chem_driver(grid, config_flags &
                                its, ite, jts, jte, kts, kte)
 
          USE module_configure
-         USE module_aerosols_sorgam, only:sum_pm_sorgam
-         USE module_mosaic_driver, only:sum_pm_mosaic, sum_pm_mosaic_vbs2, sum_pm_mosaic_vbs0, sum_vbs9, sum_vbs2, sum_vbs0
-         USE module_gocart_aerosols, only:sum_pm_gocart
-         USE module_aerosols_soa_vbs, only:sum_pm_soa_vbs
 
          IMPLICIT NONE
 
-         INTEGER, INTENT(IN)    :: &
+         integer, INTENT(IN)    :: &
             ids, ide, jds, jde, kds, kde, &
             ims, ime, jms, jme, kms, kme, &
             its, ite, jts, jte, kts, kte
 
-         REAL, DIMENSION(ims:ime, kms:kme, jms:jme, num_chem), &
+         real, dimension(ims:ime, kms:kme, jms:jme, num_chem), &
             INTENT(IN) :: chem
 
-         REAL, DIMENSION(ims:ime, kms:kme, jms:jme), &
+         real, dimension(ims:ime, kms:kme, jms:jme), &
             INTENT(IN) :: alt
-         REAL, DIMENSION(ims:ime, kms:kme, jms:jme), &
+         real, dimension(ims:ime, kms:kme, jms:jme), &
             OPTIONAL, &
             INTENT(IN) :: h2oaj, h2oai
 
-         REAL, DIMENSION(ims:ime, kms:kme, jms:jme), &
+         real, dimension(ims:ime, kms:kme, jms:jme), &
             OPTIONAL, &
             INTENT(OUT) :: pm2_5_dry, pm2_5_water, pm2_5_dry_ec, pm10, &
                            hoa_a01, hoa_a02, hoa_a03, hoa_a04, &
@@ -147,22 +138,20 @@ subroutine chem_driver(grid, config_flags &
 
    TYPE(grid_config_rec_type), INTENT(IN)    :: config_flags
 
-   INTEGER                     :: ids, ide, jds, jde, kds, kde, &
+   integer                     :: ids, ide, jds, jde, kds, kde, &
                                   ims, ime, jms, jme, kms, kme, &
                                   ips, ipe, jps, jpe, kps, kpe, &
                                   its, ite, jts, jte, kts, kte
 
 ! ..
 ! .. Local Scalars ..
-   INTEGER :: stepave, i, j, k, l, numgas, nv, n, nr, ktau, k_start, k_end, idf, jdf, kdf
-   INTEGER :: ijulian
+   integer :: stepave, i, j, k, l, numgas, nv, n, nr, ktau, k_start, k_end, idf, jdf, kdf
+   integer :: ijulian
 ! UoC dust scheme option
-   INTEGER :: imod
+   integer :: imod
 
    real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33) ::vcsulf_old, vcso2_old, vch2o2_old
    real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33, ldrog) ::vdrog3
-
-   real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33, ldrog_vbs) ::vdrog3_vbs
 
    real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33) ::n2o5_het
    real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33) :: &
@@ -172,8 +161,7 @@ subroutine chem_driver(grid, config_flags &
    real, dimension(grid%sm31:grid%em31, grid%sm33:grid%em33) :: pbl_h
    real, dimension(grid%sm31:grid%em31, grid%sm33:grid%em33, 5) :: seasin, dustin
    real, dimension(grid%sm32:grid%em32-1) :: QL, TL
-   real, dimension(grid%sm31:grid%em31, grid%sm33:grid%em33) :: REXNSFC, FACTRS &
-                                                                , TOT, TSFC
+   real, dimension(grid%sm31:grid%em31, grid%sm33:grid%em33) :: REXNSFC, FACTRS, TOT, TSFC
 
    ! temporary arrays for old chemistry values
    real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33, num_chem_ct) :: chem_old
@@ -181,31 +169,31 @@ subroutine chem_driver(grid, config_flags &
 
 ! Variables for adaptive time steps...
    TYPE(WRFU_TimeInterval) :: tmpTimeInterval
-   REAL(KIND=8) :: curr_secs
-   REAL(KIND=8) :: real_time_r8 !ext. function in adapt_timestep_em.F
-   LOGICAL      :: adapt_step_flag, do_chemstep, do_photstep
+   real(KIND=8) :: curr_secs
+   real(KIND=8) :: real_time_r8 !ext. function in adapt_timestep_em.F
+   logical      :: adapt_step_flag, do_chemstep, do_photstep
 
-   REAL :: DAYI, DPL, FICE, FRAIN, HOUR, PLYR, QI, QR, QW, RADT, TIMES, WC, TDUM, WMSK, RWMSK
-   INTEGER                         :: ij
-   INTEGER                         :: im, num_3d_m, ic, num_3d_c, num_3d_s
-   INTEGER                         :: ijds, ijde
-   INTEGER                         :: ksubt
+   real :: DAYI, DPL, FICE, FRAIN, HOUR, PLYR, QI, QR, QW, RADT, TIMES, WC, TDUM, WMSK, RWMSK
+   integer                         :: ij
+   integer                         :: im, num_3d_m, ic, num_3d_c, num_3d_s
+   integer                         :: ijds, ijde
+   integer                         :: ksubt
 
-   REAL :: chem_minval, dtstepc
+   real :: chem_minval, dtstepc
 
-   REAL, DIMENSION(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33, numgas_mam) :: gas_aqfrac ! fraction of gas that is in cloud water
+   real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33, numgas_mam) :: gas_aqfrac ! fraction of gas that is in cloud water
 
-   REAL, DIMENSION(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33, ntot_amode_cam_mam) :: &
+   real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33, ntot_amode_cam_mam) :: &
       wetdens_ap ! modal diameters and wet densities for cam_mam packages
 
-   REAL, DIMENSION(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33) :: &
+   real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33) :: &
       del_h2so4_gasprod ! change to h2so4 during gas-phase chemistry, cam_mam packages
 
    !  Balwinder.Singh@pnnl.gov:dvmrdt_sv13d,dvmrcwdt_sv13d are the tendencies which are passsed on from the CAM-MAM cloud chemistry
    !  to gasaerexch subroutine in cam_mam_aerchem_driver
-   REAL, DIMENSION(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33, gas_pcnst_pos) :: dvmrdt_sv13d, dvmrcwdt_sv13d
+   real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33, gas_pcnst_pos) :: dvmrdt_sv13d, dvmrcwdt_sv13d
 
-   LOGICAL :: haveaer
+   logical :: haveaer
    CHARACTER(LEN=1000) :: msg
    CHARACTER(LEN=256) :: current_date_char
    integer :: current_month
@@ -323,7 +311,7 @@ subroutine chem_driver(grid, config_flags &
    read (current_date_char(6:7), FMT='(I2)') current_month
 
 !
-!initialize
+! initialize
 !
    grid%raincv_b(:, :) = grid%raincv(:, :)
 

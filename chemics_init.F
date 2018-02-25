@@ -59,7 +59,6 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
       USE module_dep_simple
       USE module_input_chem_data, only:get_last_gas, &
          gasprofile_init_pnnl, &
-         mozcart_lbc_init, &
          last_chem_time, &
          setup_gasprofile_maps
 
@@ -354,37 +353,19 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
       end if
 
   aer_select: SELECT CASE(config_flags%chem_opt)
-   CASE (GOCARTRACM_KPP, GOCARTRADM2)
-      CALL wrf_debug(15, 'call GOCARTRACM_KPP chem/aerosols initialization')
+   CASE(1)
+      CALL wrf_debug(15, 'chemics_init: Stubbed out: Aerosols Initialization Routine')
       if (config_flags%chem_in_opt == 0) then
          if (.NOT. config_flags%restart) then
             do j = jts, jte
                do k = kts, kte
                   do i = its, ite
-                     chem(i, k, j, p_dms) = 0.1e-6
-                     chem(i, k, j, p_so2) = 5.e-6
-                     chem(i, k, j, p_sulf) = 3.e-6
-                     chem(i, k, j, p_msa) = 0.1e-6
-                     chem(i, k, j, p_bc1) = 0.1e-3
-                     chem(i, k, j, p_bc2) = 0.1e-3
-                     chem(i, k, j, p_oc1) = 0.1e-3
-                     chem(i, k, j, p_oc2) = 0.1e-3
-                     chem(i, k, j, p_p25) = 1.
+                  !    chem(i, k, j, p_dms) = ...
                   enddo
                enddo
             enddo
          endif
       endif
-   CASE (RADM2SORG, RADM2SORG_AQ, RADM2SORG_AQCHEM, RACMSORG_AQ, RACMSORG_AQCHEM_KPP, RACM_ESRLSORG_AQCHEM_KPP, RADM2SORG_KPP, &
-         RACMSORG_KPP, RACM_ESRLSORG_KPP, CBMZSORG, CBMZSORG_AQ)
-      CALL wrf_debug(15, 'call MADE/SORGAM aerosols initialization')
-
-      call aerosols_sorgam_init(chem, convfac, z_at_w, &
-                                pm2_5_dry, pm2_5_water, pm2_5_dry_ec, &
-                                chem_in_opt, config_flags%aer_ic_opt, is_aerosol, &
-                                ids, ide, jds, jde, kds, kde, &
-                                ims, ime, jms, jme, kms, kme, &
-                                its, ite, jts, jte, kts, kte, config_flags)
 
 !...Convert aerosols to mixing ratio
       if (.NOT. config_flags%restart) then
