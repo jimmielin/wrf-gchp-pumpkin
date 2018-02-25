@@ -133,8 +133,7 @@ subroutine chem_driver(grid, config_flags &
    integer :: imod
 
    real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33) ::vcsulf_old, vcso2_old, vch2o2_old
-   real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33, ldrog) ::vdrog3
-
+   
    real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33) ::n2o5_het
    real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33) :: &
       p_phy, u_phy, v_phy &
@@ -162,8 +161,6 @@ subroutine chem_driver(grid, config_flags &
    integer                         :: ksubt
 
    real :: chem_minval, dtstepc
-
-   real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33, numgas_mam) :: gas_aqfrac ! fraction of gas that is in cloud water
 
    real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33) :: &
       del_h2so4_gasprod ! change to h2so4 during gas-phase chemistry, cam_mam packages
@@ -302,6 +299,11 @@ subroutine chem_driver(grid, config_flags &
 
    ijds = min(ids, jds)
    ijde = max(ide, jde)
+
+   ! From module_ctrans_grell (175)
+   real :: epsilc
+   epsilc=1.e-30
+
    chem_minval = epsilc !chem_minval can be case dependant and set below...
    chem_select: SELECT CASE(config_flags%chem_opt)
 CASE (1)
