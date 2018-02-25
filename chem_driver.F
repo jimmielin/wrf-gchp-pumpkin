@@ -33,26 +33,9 @@ subroutine chem_driver(grid, config_flags &
    USE module_model_constants
    USE module_state_description
 
-   !! WRF Physics/Chemistry Interfaces
-   USE modal_aero_data, only:ntot_amode_cam_mam => ntot_amode
-   USE module_cam_support, only:gas_pcnst => gas_pcnst_modal_aero, &
-                                             gas_pcnst_pos => gas_pcnst_modal_aero_pos, &
-                                                              pcnst => pcnst_runtime, numgas_mam, cam_mam_aerosols
-
-
    !! Chemistry Stub Interfaces
-   USE module_data_radm2
-   USE module_data_sorgam
-   USE module_radm
-   USE module_dep_simple
-   USE module_bioemi_simple
-   USE module_aerosols_sorgam
    USE module_chem_utilities
    USE module_aer_opt_out, only:aer_opt_out
-   USE module_ctrans_grell
-   USE module_dust_load
-   USE module_dry_dep_driver
-   USE module_emissions_driver
    USE module_input_chem_data, only:last_chem_time, &
 #if (defined(CHEM_DBG_I) && defined(CHEM_DBG_J) && defined(CHEM_DBG_K))
                                     chem_dbg, &
@@ -182,15 +165,8 @@ subroutine chem_driver(grid, config_flags &
 
    real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33, numgas_mam) :: gas_aqfrac ! fraction of gas that is in cloud water
 
-   real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33, ntot_amode_cam_mam) :: &
-      wetdens_ap ! modal diameters and wet densities for cam_mam packages
-
    real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33) :: &
       del_h2so4_gasprod ! change to h2so4 during gas-phase chemistry, cam_mam packages
-
-   !  Balwinder.Singh@pnnl.gov:dvmrdt_sv13d,dvmrcwdt_sv13d are the tendencies which are passsed on from the CAM-MAM cloud chemistry
-   !  to gasaerexch subroutine in cam_mam_aerchem_driver
-   real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33, gas_pcnst_pos) :: dvmrdt_sv13d, dvmrcwdt_sv13d
 
    logical :: haveaer
    CHARACTER(LEN=1000) :: msg
