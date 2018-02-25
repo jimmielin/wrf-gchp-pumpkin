@@ -75,7 +75,6 @@ MODULES =                                 \
         module_cbmz_initmixrats.o         \
         module_cbmz_rodas_prep.o          \
         module_ctrans_grell.o             \
-        module_gocart_chem.o              \
         module_input_tracer.o             \
 		module_lightning_nox_driver.o     \
 		module_lightning_nox_ott.o        \
@@ -88,7 +87,6 @@ MODULES =                                 \
         module_wetscav_driver.o           \
         module_input_chem_bioemiss.o      \
         module_input_dust_errosion.o      \
-        module_input_gocart_dms.o         \
         module_cbmz_addemiss.o            \
         module_cbm4_addemiss.o            \
         module_emissions_anthropogenics.o \

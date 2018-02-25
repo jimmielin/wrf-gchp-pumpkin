@@ -51,7 +51,7 @@ CONTAINS
       REAL, DIMENSION(ims:ime, kms:kme, jms:jme), &
          INTENT(IN) :: t_phy, dz8w, p8w, rho_phy
       REAL, INTENT(IN) :: dt, dx, g
-      
+
       !! Stub
    end subroutine gocart_aerosols_driver
 
@@ -64,6 +64,16 @@ CONTAINS
       USE module_configure
       USE module_state_description
       IMPLICIT NONE
+
+      INTEGER, INTENT(IN) :: ids, ide, jds, jde, kds, kde, &
+                             ims, ime, jms, jme, kms, kme, &
+                             its, ite, jts, jte, kts, kte
+      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), &
+         INTENT(INOUT) :: pm2_5_dry, pm2_5_dry_ec, pm10
+      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), &
+         INTENT(IN) :: alt
+      REAL, DIMENSION(ims:ime, kms:kme, jms:jme, num_chem), &
+         INTENT(IN) :: chem
 
       !! Stub
    end subroutine sum_pm_gocart
