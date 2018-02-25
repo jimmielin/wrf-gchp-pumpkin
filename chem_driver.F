@@ -133,7 +133,7 @@ subroutine chem_driver(grid, config_flags &
    integer :: imod
 
    real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33) ::vcsulf_old, vcso2_old, vch2o2_old
-   
+
    real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33) ::n2o5_het
    real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33) :: &
       p_phy, u_phy, v_phy &
@@ -160,6 +160,7 @@ subroutine chem_driver(grid, config_flags &
    integer                         :: ijds, ijde
    integer                         :: ksubt
 
+   real :: epsilc
    real :: chem_minval, dtstepc
 
    real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33) :: &
@@ -301,7 +302,6 @@ subroutine chem_driver(grid, config_flags &
    ijde = max(ide, jde)
 
    ! From module_ctrans_grell (175)
-   real :: epsilc
    epsilc=1.e-30
 
    chem_minval = epsilc !chem_minval can be case dependant and set below...
@@ -323,7 +323,6 @@ CASE DEFAULT
       enddo
    enddo
 
-   vdrog3 = 0.
    do j = jps, min(jde - 1, jpe)
       do k = kps, kpe
          do i = ips, min(ide - 1, ipe)
