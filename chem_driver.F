@@ -118,12 +118,12 @@ subroutine chem_driver(grid, config_flags &
 # include <dummy_new_decl.inc>
 # define NO_I1_OLD
 
-   TYPE(grid_config_rec_type), INTENT(IN)    :: config_flags
+   TYPE(grid_config_rec_type), INTENT(IN) :: config_flags
 
-   integer                     :: ids, ide, jds, jde, kds, kde, &
-                                  ims, ime, jms, jme, kms, kme, &
-                                  ips, ipe, jps, jpe, kps, kpe, &
-                                  its, ite, jts, jte, kts, kte
+   integer :: ids, ide, jds, jde, kds, kde, &
+              ims, ime, jms, jme, kms, kme, &
+              ips, ipe, jps, jpe, kps, kpe, &
+              its, ite, jts, jte, kts, kte
 
 ! ..
 ! .. Local Scalars ..

@@ -55,8 +55,6 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
       ! WRF Physics Dependencies
       USE module_cam_support, only:numgas_mam, gas_pcnst_modal_aero, gas_pcnst_modal_aero_pos !BSINGH - Fix for non-MAM simulations
 
-      USE module_aerosols_sorgam
-      USE module_dep_simple
       USE module_input_chem_data, only:get_last_gas, &
          gasprofile_init_pnnl, &
          last_chem_time, &
@@ -135,6 +133,13 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
       integer :: i, j, k, l, numgas, ixhour, n, ndystep, kk, nv
       real, dimension(1, 1) :: sza, cosszax
       real :: xtime, xhour, xmin, gmtp, xlonn, rlat
+
+      ! From module_aerosols_sorgam / dep_simple, hplin 2-25-2018
+      ! num_chem is from module_state_description
+      logical, allocatable :: is_aerosol(:) ! true if field is aerosol (any phase)
+
+      ! From module ctrans_grell, hplin 2-25-2018
+      real :: epsilc
 
 #ifdef CHEM_DBG_I
       call print_chem_species_index(config_flags%chem_opt)
@@ -345,6 +350,7 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
 ! regiistry. For now, we will do a simple check to trap a change in the
 ! desired size of num_chem and assume that if the size is the same, the
 ! species will be too.  wig, 24-Oct-2005
+
       if (.not. allocated(is_aerosol)) then
          allocate (is_aerosol(num_chem))
       else
@@ -382,6 +388,8 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
         enddo
         endif
       endif
+
+      epsilc=1.e-30
       chem(its:ite, kts:min(kte, kde - 1), jts:jte, :) = max(chem(its:ite, kts:min(kte, kde - 1), jts:jte, :), epsilc)
 
       END SELECT aer_select
