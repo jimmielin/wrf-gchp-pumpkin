@@ -48,7 +48,6 @@ subroutine chem_driver(grid, config_flags &
    USE module_bioemi_simple
    USE module_aerosols_sorgam
    USE module_chem_utilities
-   USE module_gocart_so2so4
    USE module_aer_opt_out, only:aer_opt_out
    USE module_ctrans_grell
    USE module_dust_load

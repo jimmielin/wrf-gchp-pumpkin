@@ -19,8 +19,6 @@ MODULES =                                 \
         module_ctrans_aqchem.o            \
         module_data_cbmz.o                \
         module_data_cmu_bulkaqchem.o      \
-        module_data_gocartchem.o          \
-        module_data_gocart_seas.o         \
         module_data_mosaic_asect.o        \
         module_data_mosaic_other.o        \
         module_data_mosaic_therm.o        \
@@ -31,9 +29,6 @@ MODULES =                                 \
         module_data_sorgam.o              \
         module_ftuv_subs.o                \
         module_ghg_fluxes.o               \
-        module_gocart_drydep.o            \
-        module_gocart_settling.o          \
-        module_gocart_so2so4.o            \
         module_input_tracer_data.o        \
         module_interpolate.o              \
         module_mosaic_csuesat.o           \
@@ -48,11 +43,6 @@ MODULES =                                 \
         module_vash_settling.o            \
         module_chem_plumerise_scalar.o    \
         module_dep_simple.o               \
-        module_gocart_dmsemis.o           \
-        module_gocart_aerosols.o          \
-        module_gocart_dust.o              \
-        module_gocart_dust_afwa.o         \
-        module_gocart_seasalt.o           \
         module_uoc_dust.o                 \
         module_qf03.o                     \
         module_soilpsd.o                  \
