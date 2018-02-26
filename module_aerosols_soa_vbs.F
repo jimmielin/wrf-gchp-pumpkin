@@ -375,7 +375,7 @@ CONTAINS
                        dgacc, dgcor, pmassn, pmassa, pmassc, pdensn, pdensa, pdensc, knnuc, knacc, &
                        kncor, fconcn, fconca, fconcn_org, fconca_org, dmdt, dndt, cgrn3, cgra3, urn00, &
                        ura00, brna01, c30, deltaso4a, igrid, jgrid, kgrid, brrto)
-
+      integer igrid, jgrid, kgrid, isorop
 !USE module_configure, only: grid_config_rec_type
 !TYPE (grid_config_rec_type), INTENT (in) :: config_flags
 
@@ -3605,7 +3605,6 @@ CONTAINS
       REAL PnGtotal, DUM, FMTOT, FMTOT2, DUM2 ! Real constants used in Newton iteration
       integer, save :: icall
 
-
       RETURN
    END SUBROUTINE soa_vbs
 !
@@ -4232,7 +4231,6 @@ CONTAINS
       DATA splitfac/.98/
       DATA so4vaptoaer/.999/
 
-
       return
    END SUBROUTINE aerosols_soa_vbs_init
 
@@ -4290,7 +4288,6 @@ CONTAINS
          INTENT(IN) ::   ivgtyp, isltyp
       REAL, DIMENSION(ims:ime, num_soil_layers, jms:jme), &
          INTENT(INOUT) ::   smois
-
 
    END SUBROUTINE soa_vbs_addemiss
 
@@ -4454,6 +4451,8 @@ CONTAINS
                                 erod, ilwi, dxy, w10m, gwet, airden, airmas, &
                                 bems, month, g0)
 
+      ! hplin 2-26-2018 from gocart_dust data
+      INTEGER, PARAMETER :: ndust=5,ndcls=3,ndsrc=1,maxstypes=100
       INTEGER, INTENT(IN)    :: nmx
       REAL*8, INTENT(IN)  :: erod(ndcls)
       INTEGER, INTENT(IN)    :: ilwi, month
