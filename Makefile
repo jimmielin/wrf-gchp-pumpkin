@@ -20,12 +20,13 @@ MODULES =                                 \
         module_tropopause.o \
         module_upper_bc_driver.o \
         module_data_mosaic_asect.o \
-        module_mosaic_addemiss.o \
         module_mosaic_driver.o \
         module_radm.o \
         module_dep_simple.o \
         module_mosaic_wetscav.o \
         module_aerosols_sorgam.o \
+        module_gocart_aerosols.o \
+        module_aerosols_soa_vbs.o \
         module_input_chem_data.o \
         module_input_tracer.o
 
