@@ -417,16 +417,16 @@ contains
    end subroutine mapaer_tofrom_host
 
    subroutine init_data_mosaic_asect(n2o5_hetchem, is_aerosol)
-      implicit none
       use module_state_description, only: num_chem
+      implicit none
       logical, intent(out) :: is_aerosol(num_chem)
       integer, intent(in) :: n2o5_hetchem
 
    end subroutine init_data_mosaic_asect
 
    subroutine init_data_mosaic_ptr(is_aerosol)
-      implicit none
       use module_state_description, only: num_chem
+      implicit none
       logical, intent(out) :: is_aerosol(num_chem)
 
       !! Stubbed out completely
