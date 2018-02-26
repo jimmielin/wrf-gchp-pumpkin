@@ -418,6 +418,7 @@ contains
 
    subroutine init_data_mosaic_asect(n2o5_hetchem, is_aerosol)
       implicit none
+      use module_state_description, only: num_chem
       logical, intent(out) :: is_aerosol(num_chem)
       integer, intent(in) :: n2o5_hetchem
 
@@ -425,6 +426,7 @@ contains
 
    subroutine init_data_mosaic_ptr(is_aerosol)
       implicit none
+      use module_state_description, only: num_chem
       logical, intent(out) :: is_aerosol(num_chem)
 
       !! Stubbed out completely
@@ -433,9 +435,9 @@ contains
    end subroutine init_data_mosaic_ptr
 
    subroutine aerchem_debug_dump(iflag, iclm, jclm, dtchem)
+      implicit none
       integer iflag, iclm, jclm
       real dtchem
-      implicit none
 
       return
    end subroutine aerchem_debug_dump
