@@ -28,7 +28,8 @@ MODULES =                                 \
         module_gocart_aerosols.o \
         module_aerosols_soa_vbs.o \
         module_input_chem_data.o \
-        module_input_tracer.o
+        module_input_tracer.o \
+        module_input_chem_bioemiss.o
 
 OBJS    =                           \
         chemics_init.o              \
