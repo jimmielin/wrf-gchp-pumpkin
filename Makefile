@@ -47,8 +47,8 @@ include ../configure.wrf
 
 clean:
 	rm *.o
-	echo ".o cleaned.\n"
-	echo "Cleaning chem may not be enough - check subdirectories."
+	@echo ".o cleaned.\n"
+	@echo "Cleaning chem may not be enough - check subdirectories."
 
 # DEPENDENCIES : only dependencies after this line (don't remove the word DEPENDENCIES)
 
