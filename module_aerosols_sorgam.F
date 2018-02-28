@@ -28,6 +28,7 @@
 module module_aerosols_sorgam
    implicit none
 
+contains
    subroutine sum_pm_sorgam(alt, chem, h2oaj, h2oai, &
                             pm2_5_dry, pm2_5_water, pm2_5_dry_ec, pm10, &
                             dust_opt, ids, ide, jds, jde, kds, kde, &
