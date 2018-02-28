@@ -50,6 +50,14 @@ clean:
 	@echo ".o cleaned.\n"
 	@echo "Cleaning chem may not be enough - check subdirectories."
 
+devclean:
+	@echo "This is for development purposes only.\n"
+	git pull origin master
+	rm *.f90
+	rm *.o
+	git checkout -- .
+	@echo "Done"
+
 # DEPENDENCIES : only dependencies after this line (don't remove the word DEPENDENCIES)
 
 include depend.chem
