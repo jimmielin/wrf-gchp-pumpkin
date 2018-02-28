@@ -38,4 +38,4 @@ module_input_chem_data.o: module_aerosols_sorgam.o
 
 chemics_init.o: module_input_chem_data.o module_tropopause.o module_upper_bc_driver.o
 
-chem_driver.o: ../dyn_em/module_convtrans_prep.o module_chem_utilities.o module_vertmx_wrf.o  module_tropopause.o module_upper_bc_driver.o module_aer_opt_out.o
+chem_driver.o: ../dyn_em/module_convtrans_prep.o module_input_chem_data.o module_chem_utilities.o module_vertmx_wrf.o module_tropopause.o module_upper_bc_driver.o module_aer_opt_out.o
