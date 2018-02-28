@@ -46,7 +46,9 @@ DRIVERS : $(OBJS)
 include ../configure.wrf
 
 clean:
-	@ echo 'use the clean script'
+	rm *.o
+	echo ".o cleaned.\n"
+	echo "Cleaning chem may not be enough - check subdirectories."
 
 # DEPENDENCIES : only dependencies after this line (don't remove the word DEPENDENCIES)
 
