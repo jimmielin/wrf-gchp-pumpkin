@@ -48,7 +48,8 @@ include ../configure.wrf
 
 clean:
 	rm *.o
-	@echo ".o cleaned.\n"
+	rm *.f90
+	rm *.mod
 	@echo "Cleaning chem may not be enough - check subdirectories."
 
 devclean:

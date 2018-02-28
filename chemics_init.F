@@ -53,14 +53,12 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
       USE module_state_description
 
       ! WRF Physics Dependencies
-      USE module_cam_support, only:numgas_mam, gas_pcnst_modal_aero, gas_pcnst_modal_aero_pos !BSINGH - Fix for non-MAM simulations
+      USE module_cam_support, only: numgas_mam, gas_pcnst_modal_aero, gas_pcnst_modal_aero_pos
 
-      USE module_input_chem_data, only:get_last_gas, &
-         gasprofile_init_pnnl, &
-         last_chem_time, &
-         setup_gasprofile_maps
+      USE module_input_chem_data, only: get_last_gas, &
+         last_chem_time, setup_gasprofile_maps
 
-      IMPLICIT NONE
+      implicit none
 
       real, intent(in) :: bioemdt, photdt, chemdt, dt, gmt
       integer, intent(IN) :: plumerisefire_frq
@@ -93,8 +91,7 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
 
 !-- Arrays needed to output dgnum when restarting
       real, dimension(ims:ime, kms:kme, jms:jme, 3), &
-         intent(INOUT) :: &
-         dgnum4d, dgnumwet4d
+         intent(INOUT) :: dgnum4d, dgnumwet4d
       real, dimension(ims:ime, kms:kme, jms:jme), &
          intent(INOUT) :: &
          dgnum_a1, dgnum_a2, dgnum_a3, &
@@ -108,20 +105,15 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
          intent(IN) :: &
          z_at_w, t, p, alt, convfac
       real, dimension(ims:ime, kms:kme, jms:jme, num_chem), &
-         intent(INOUT) :: &
-         chem
+         intent(INOUT) :: chem
       real, dimension(ims:ime, 1:kemit, jms:jme, num_emis_ant), &
-         intent(INOUT) :: &
-         emis_ant
+         intent(INOUT) :: emis_ant
       real, dimension(ims:ime, kms:kme, jms:jme, num_scalar), &
-         intent(INOUT) :: &
-         scalar
+         intent(INOUT) :: scalar
       real, dimension(ims:ime, kms:kme, jms:jme), &
-         intent(INOUT) :: &
-         aerwrf
+         intent(INOUT) :: aerwrf
       real, dimension(ims:ime, jms:jme), &
-         intent(INOUT) :: &
-         ttday, tcosz, xlat, xlong
+         intent(INOUT) :: ttday, tcosz, xlat, xlong
       real, intent(IN) :: g
       integer, intent(out) :: stepbioe, stepphot, stepchem, stepfirepl
       type(grid_config_rec_type), intent(in) :: config_flags
