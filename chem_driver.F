@@ -173,47 +173,6 @@ subroutine chem_driver(grid, config_flags &
 
    INTRINSIC max, min
 
-!<DESCRIPTION>
-!<pre>
-! chem_driver is the main driver for handling chemistry related tasks
-! for a particular timestep. chem_driver is a mediation-layer routine ->
-! DM and SM calls are made where needed for parallel processing.
-!
-! The main sections of chem_driver are:
-!
-! (1) Initialization of meteorology variables as needed for chemistry
-!
-! (2) Calls to drivers for the various chemistry tasks:
-!        emissions_driver
-!        photolysis_driver
-!        dry_dep_driver
-!        grelldrvct (convective tracer transport)
-!        mechanism_driver (gases)
-!        cloud_chem_driver
-!        aerosols_driver
-!        wetscav_driver
-!        sum_pm_driver
-!
-! Handling of tile indices in chem_driver is as close as possible to
-! what is done in solve_em. For subroutines called from chem_driver,
-! the its:ite, jts:jte, and kts:kte variables represent the extent of
-! the domain that each processor should loop over. For example, a do
-! loop in the vertical for the chem array should go from kts to kte.
-! For the EM core, kte=kde-1.
-!
-! Note that the tile indices for the chemistry initialization differ
-! from the integration loop indices in that the initializataion routines
-! use kte=kde. Go figure, this is how the met. folks set things up.
-!
-!</pre>
-!</DESCRIPTION>
-
-! ..
-
-! Number of levels to exclude from the chem calculations counting from
-! the model top.
-!  ksubt=0
-
 !
 ! Setup the adaptive timestep for the chem routines. Most of this follows
 ! what is in solve_em, except for the call to adjust time_step.
@@ -350,6 +309,25 @@ CASE DEFAULT
 
 !$OMP PARALLEL DO   &
 !$OMP PRIVATE ( ij, its, ite, jts, jte )
+
+!-- ids           start index for i in domain
+!-- ide           end index for i in domain
+!-- jds           start index for j in domain
+!-- jde           end index for j in domain
+!-- kds           start index for k in domain
+!-- kde           end index for k in domain
+!-- ims           start index for i in memory
+!-- ime           end index for i in memory
+!-- jms           start index for j in memory
+!-- jme           end index for j in memory
+!-- kms           start index for k in memory
+!-- kme           end index for k in memory
+!-- its           start index for i in tile
+!-- ite           end index for i in tile
+!-- jts           start index for j in tile
+!-- jte           end index for j in tile
+!-- kts           start index for k in tile
+!-- kte           end index for k in tile
    chem_tile_loop_1: DO ij = 1, grid%num_tiles
       its = grid%i_start(ij)
       ite = min(grid%i_end(ij), ide - 1)
