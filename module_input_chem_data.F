@@ -52,8 +52,11 @@ module module_input_chem_data
    ! Number of vertical levels in temp profile
    integer :: kx
 
+   ! kxm1
+   integer :: kxm1
+
    ! Values for kx, lo, logg from WRF-Chem 3.9.1
-   parameter(kx=16, lo=34, logg=350)
+   parameter(kx=16, kxm1=kx-1, lo=34, logg=350)
 
    ! zfa
    ! profile heights in meters, req. by input_chem_profile
