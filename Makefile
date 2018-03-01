@@ -47,16 +47,17 @@ DRIVERS : $(OBJS)
 include ../configure.wrf
 
 clean:
-	rm *.o
-	rm *.f90
-	rm *.mod
+	rm -f *.o
+	rm -f *.f90
+	rm -f *.mod
 	@echo "Cleaning chem may not be enough - check subdirectories."
 
 devclean:
 	@echo "This is for development purposes only.\n"
 	git pull origin master
-	rm *.f90
-	rm *.o
+	rm -f *.f90
+	rm -f *.o
+	rm -f *.mod
 	git checkout -- .
 	@echo "Done"
 

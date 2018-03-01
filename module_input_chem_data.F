@@ -37,6 +37,25 @@ module module_input_chem_data
    ! req. by chem/chem_driver for timestep calculations.
    type(WRFU_Time), dimension(max_domains) :: last_chem_time
 
+   ! lo
+   ! Number of chemicals in initial profile
+   integer :: lo
+
+   ! logg
+   ! Number of final chemical species
+   integer :: logg
+
+   ! kx
+   ! Number of vertical levels in temp profile
+   integer :: kx
+
+   ! Values for kx, lo, logg from WRF-Chem 3.9.1
+   parameter(kx=16, lo=34, logg=350)
+
+   ! xl
+   ! req. by input_chem_profile
+   real, dimension(lo, kx) :: xl
+
 contains
    ! get_last_gas
    ! Get the index of the last gas species depending on mechanism. req. by chem/chem_driver
@@ -109,14 +128,18 @@ contains
       implicit none
       type(domain) :: si_grid
 
-      INTEGER :: i, j, k, &
+      integer :: i, j, k, &
                  ids, ide, jds, jde, kds, kde, &
                  ims, ime, jms, jme, kms, kme, &
                  ips, ipe, jps, jpe, kps, kpe
-      INTEGER :: fid, ierr, numgas
-      INTEGER :: debug_level
+      integer :: fid, ierr, numgas
+      integer :: debug_level
 
       REAL, ALLOCATABLE, DIMENSION(:, :, :) :: si_zsigf, si_zsig
+
+      ! Mean gravitational acceleration (m/s^2)
+      real grav
+      parameter (grav=9.80622)
 
       ! Get grid dimensions
       call get_ijk_from_grid(si_grid, &
