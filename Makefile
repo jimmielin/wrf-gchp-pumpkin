@@ -56,7 +56,24 @@ devclean:
 	git checkout -- .
 	@echo "Done"
 
-# DEPENDENCIES : only dependencies after this line (don't remove the word DEPENDENCIES)
+about:
+	@echo "*****************************************************************"
+	@echo "  __          _______  ______       _____  _____ _    _ _____    "
+	@echo "  \ \        / /  __ \|  ____|     / ____|/ ____| |  | |  __ \   "
+	@echo "   \ \  /\  / /| |__) | |__ ______| |  __| |    | |__| | |__) |  "
+	@echo "    \ \/  \/ / |  _  /|  __|______| | |_ | |    |  __  |  ___/   "
+	@echo "     \  /\  /  | | \ \| |         | |__| | |____| |  | | |       "
+	@echo "      \/  \/   |_|  \_\_|          \_____|\_____|_|  |_|_|       "
+	@echo "*****************************************************************"
+	@echo "   THIS IS THE WRF-GCHP 'PUMPKIN' CHEMISTRY ABSTRACTION LAYER    "
+	@echo "                    FOR THE WRF MODEL VERSION 3                  "
+	@echo "*****************************************************************"
+	@echo " FOR ERRORS, SUGGESTIONS AND FEEDBACK, CONTACT HAIPENG LIN AT    "
+	@echo "           LINHAIPENG@PKU.EDU.CN | JIMMIE.LIN@GMAIL.COM          "
+	@echo "*****************************************************************"
+	@echo " (c) 2018 Haipeng Lin                                            "
+	@echo " Peking University, Atmospheric Chemistry and Climate Group      "
+	@echo "*****************************************************************"
 
 include depend.chem
 
