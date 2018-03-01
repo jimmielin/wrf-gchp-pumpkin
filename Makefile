@@ -11,7 +11,6 @@ RM      =       rm -f
 
 MODULES =                                 \
         module_data_radm2.o \
-        module_data_soa_vbs.o \
         module_data_sorgam.o \
         module_chem_utilities.o \
         module_interpolate.o \
@@ -19,11 +18,7 @@ MODULES =                                 \
         module_aer_opt_out.o \
         module_tropopause.o \
         module_upper_bc_driver.o \
-        module_data_mosaic_asect.o \
         module_mosaic_driver.o \
-        module_radm.o \
-        module_dep_simple.o \
-        module_mosaic_wetscav.o \
         module_aerosols_sorgam.o \
         module_gocart_aerosols.o \
         module_aerosols_soa_vbs.o \
