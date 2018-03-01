@@ -37,6 +37,9 @@ module module_input_chem_data
    ! req. by chem/chem_driver for timestep calculations.
    type(WRFU_Time), dimension(max_domains) :: last_chem_time
 
+   ! loop index
+   integer :: k_loop
+
    ! lo
    ! Number of chemicals in initial profile
    integer :: lo
@@ -52,9 +55,173 @@ module module_input_chem_data
    ! Values for kx, lo, logg from WRF-Chem 3.9.1
    parameter(kx=16, lo=34, logg=350)
 
+   ! zfa
+   ! profile heights in meters, req. by input_chem_profile
+   real, dimension(kx + 1) :: zfa
+   data ZFA/0., 85., 212., 385., 603., 960., 1430., 2010., &
+      2850., 4010., 5340., 6900., 8510., 10200., 12100., 16000., &
+      21000./
+
+   ! dens
+   real, dimension(kx) :: dens
+   data dens/2.738E+18, 5.220E+18, 7.427E+18, 9.202E+18, &
+      1.109E+19, 1.313E+19, 1.525E+19, 1.736E+19, &
+      1.926E+19, 2.074E+19, 2.188E+19, 2.279E+19, &
+      2.342E+19, 2.384E+19, 2.414E+19, 2.434E+19/
+
+   ! iref
+   ! The reference index.
+   integer, dimension(logg) :: iref
+
+   ! fracref
+   ! Reference fraction corresponding to iref.
+   ! e.g. for WRF-Chem RADM, species # 1 is SO2. iref(1) = 12, xl(12, k) = so2 profile.
+   ! this is converted from the NALROM chemistry model, according to wrf-chem 3.9.1 source.
+   real, dimension(logg) :: fracref
+
    ! xl
    ! req. by input_chem_profile
    real, dimension(lo, kx) :: xl
+
+   !wig: To match the xl profile to the correct species, match WRF's p_<species>
+   !     flag with iref(p_<species>-1) to get the value of the first index in xl,
+   !     e.g. p_o3=6, iref(6-1)=1, so xl(1,:) is the ozone profile.
+   !     See gasprofile_init_pnnl for an explination of what height
+   !     each index represents.
+   DATA(xl(1, k_loop), k_loop=1, kx) &
+      /1.68E-07, 1.68E-07, 5.79E-08, 5.24E-08, 5.26E-08, &
+      5.16E-08, 4.83E-08, 4.50E-08, 4.16E-08, 3.80E-08, 3.56E-08, &
+      3.35E-08, 3.15E-08, 3.08E-08, 3.06E-08, 3.00E-08/
+
+   DATA(xl(2, k_loop), k_loop=1, kx) &
+      /4.06E-10, 4.06E-10, 2.16E-10, 1.37E-10, 9.47E-11, &
+      6.95E-11, 5.31E-11, 4.19E-11, 3.46E-11, 3.01E-11, 2.71E-11, &
+      2.50E-11, 2.35E-11, 2.26E-11, 2.20E-11, 2.16E-11/
+
+   DATA(xl(3, k_loop), k_loop=1, kx) &
+      /9.84E-10, 9.84E-10, 5.66E-10, 4.24E-10, 3.26E-10, &
+      2.06E-10, 1.12E-10, 7.33E-11, 7.03E-11, 7.52E-11, 7.96E-11, &
+      7.56E-11, 7.27E-11, 7.07E-11, 7.00E-11, 7.00E-11/
+
+   DATA(xl(4, k_loop), k_loop=1, kx) &
+      /8.15E-10, 8.15E-10, 8.15E-10, 8.15E-10, 8.15E-10, &
+      8.65E-10, 1.07E-09, 1.35E-09, 1.47E-09, 1.47E-09, 1.47E-09, &
+      1.47E-09, 1.45E-09, 1.43E-09, 1.40E-09, 1.38E-09/
+
+   DATA(xl(5, k_loop), k_loop=1, kx) &
+      /4.16E-10, 4.16E-10, 4.16E-10, 4.16E-10, 4.16E-10, &
+      4.46E-10, 5.57E-10, 1.11E-09, 1.63E-09, 1.63E-09, 1.63E-09, &
+      1.63E-09, 1.61E-09, 1.59E-09, 1.57E-09, 1.54E-09/
+
+   !  CO is 70 ppbv at top, 80 throughout troposphere
+   DATA(xl(6, k_loop), k_loop=1, kx)/7.00E-08, kxm1*8.00E-08/
+
+   DATA(xl(7, k_loop), k_loop=1, kx) &
+      /8.33E-29, 8.33E-29, 8.33E-29, 8.33E-29, 8.33E-29, &
+      1.33E-28, 3.54E-28, 1.85E-28, 1.29E-29, 1.03E-30, 1.72E-31, &
+      7.56E-32, 1.22E-31, 2.14E-31, 2.76E-31, 2.88E-31/
+
+   DATA(xl(8, k_loop), k_loop=1, kx) &
+      /9.17E-11, 9.17E-11, 9.17E-11, 9.17E-11, 9.17E-11, &
+      1.03E-10, 1.55E-10, 2.68E-10, 4.47E-10, 4.59E-10, 4.72E-10, &
+      4.91E-10, 5.05E-10, 5.13E-10, 5.14E-10, 5.11E-10/
+   DATA(xl(9, k_loop), k_loop=1, kx) &
+      /7.10E-12, 7.10E-12, 7.10E-12, 7.10E-12, 7.10E-12, &
+      7.36E-12, 1.02E-11, 2.03E-11, 2.98E-11, 3.01E-11, 3.05E-11, &
+      3.08E-11, 3.08E-11, 3.06E-11, 3.03E-11, 2.99E-11/
+   DATA(xl(10, k_loop), k_loop=1, kx) &
+      /4.00E-11, 4.00E-11, 4.00E-11, 3.27E-11, 2.51E-11, &
+      2.61E-11, 2.20E-11, 1.69E-11, 1.60E-11, 1.47E-11, 1.37E-11, &
+      1.30E-11, 1.24E-11, 1.20E-11, 1.18E-11, 1.17E-11/
+   DATA(xl(11, k_loop), k_loop=1, kx) &
+      /1.15E-16, 1.15E-16, 2.46E-15, 2.30E-14, 1.38E-13, &
+      6.25E-13, 2.31E-12, 7.32E-12, 1.87E-11, 3.68E-11, 6.10E-11, &
+      9.05E-11, 1.22E-10, 1.50E-10, 1.70E-10, 1.85E-10/
+   DATA(xl(12, k_loop), k_loop=1, kx) &
+      /1.00E-10, 1.00E-10, 1.00E-10, 1.00E-10, 1.00E-10, &
+      1.00E-10, 1.00E-10, 1.00E-10, 1.00E-10, 1.00E-10, 1.00E-10, &
+      1.00E-10, 1.00E-10, 1.00E-10, 1.00E-10, 1.00E-10/
+   DATA(xl(13, k_loop), k_loop=1, kx) &
+      /1.26E-11, 1.26E-11, 2.02E-11, 2.50E-11, 3.02E-11, &
+      4.28E-11, 6.62E-11, 1.08E-10, 1.54E-10, 2.15E-10, 2.67E-10, &
+      3.24E-10, 3.67E-10, 3.97E-10, 4.16E-10, 4.31E-10/
+   DATA(xl(14, k_loop), k_loop=1, kx) &
+      /1.15E-16, 1.15E-16, 2.46E-15, 2.30E-14, 1.38E-13, &
+      6.25E-13, 2.31E-12, 7.32E-12, 1.87E-11, 3.68E-11, 6.10E-11, &
+      9.05E-11, 1.22E-10, 1.50E-10, 1.70E-10, 1.85E-10/
+   DATA(xl(15, k_loop), k_loop=1, kx) &
+      /1.00E-20, 1.00E-20, 6.18E-20, 4.18E-18, 1.23E-16, &
+      2.13E-15, 2.50E-14, 2.21E-13, 1.30E-12, 4.66E-12, 1.21E-11, &
+      2.54E-11, 4.47E-11, 6.63E-11, 8.37E-11, 9.76E-11/
+   DATA(xl(16, k_loop), k_loop=1, kx) &
+      /1.23E-11, 1.23E-11, 1.23E-11, 1.23E-11, 1.23E-11, &
+      1.20E-11, 9.43E-12, 3.97E-12, 1.19E-12, 1.11E-12, 9.93E-13, &
+      8.66E-13, 7.78E-13, 7.26E-13, 7.04E-13, 6.88E-13/
+   DATA(xl(17, k_loop), k_loop=1, kx) &
+      /1.43E-12, 1.43E-12, 1.43E-12, 1.43E-12, 1.43E-12, &
+      1.50E-12, 2.64E-12, 8.90E-12, 1.29E-11, 1.30E-11, 1.32E-11, &
+      1.32E-11, 1.31E-11, 1.30E-11, 1.29E-11, 1.27E-11/
+   DATA(xl(18, k_loop), k_loop=1, kx) &
+      /3.61E-13, 3.61E-13, 3.61E-13, 3.61E-13, 3.61E-13, &
+      3.58E-13, 5.22E-13, 1.75E-12, 2.59E-12, 2.62E-12, 2.64E-12, &
+      2.66E-12, 2.65E-12, 2.62E-12, 2.60E-12, 2.57E-12/
+   DATA(xl(19, k_loop), k_loop=1, kx) &
+      /5.00E-11, 5.00E-11, 5.00E-11, 5.00E-11, 5.00E-11, &
+      5.00E-11, 5.00E-11, 5.00E-11, 5.00E-11, 5.00E-11, 5.00E-11, &
+      5.00E-11, 5.00E-11, 5.00E-11, 5.00E-11, 5.00E-11/
+
+   DATA(xl(20, k_loop), k_loop=1, kx)/kx*1.E-20/
+   DATA(xl(21, k_loop), k_loop=1, kx)/kx*1.E-20/
+   DATA(xl(22, k_loop), k_loop=1, kx)/kx*1.E-20/
+   DATA(xl(23, k_loop), k_loop=1, kx)/kx*1.E-20/
+   DATA(xl(24, k_loop), k_loop=1, kx)/kx*1.E-20/
+   DATA(xl(25, k_loop), k_loop=1, kx)/kx*1.E-20/
+
+   ! Propane - Gregory PEM-West A 25 ppt median marine boundary layer
+   DATA(xl(26, k_loop), k_loop=1, kx) &
+      /5.00E-13, 1.24E-12, 2.21E-12, 3.27E-12, 4.71E-12, &
+      6.64E-12, 9.06E-12, 1.19E-11, 1.47E-11, 1.72E-11, &
+      1.93E-11, 2.11E-11, 2.24E-11, 2.34E-11, 2.42E-11, 2.48E-11/
+   ! Acetylene - Gregory PEM-West A 53 ppt median marine boundary layer
+   DATA(xl(27, k_loop), k_loop=1, kx) &
+      /1.00E-12, 2.48E-12, 4.42E-12, 6.53E-12, 9.42E-12, &
+      1.33E-11, 1.81E-11, 2.37E-11, 2.95E-11, 3.44E-11, &
+      3.85E-11, 4.22E-11, 4.49E-11, 4.69E-11, 4.84E-11, 4.95E-11/
+   ! OH
+   DATA(xl(28, k_loop), k_loop=1, kx) &
+      /9.80E+06, 9.80E+06, 4.89E+06, 2.42E+06, 1.37E+06, &
+      9.18E+05, 7.29E+05, 6.26E+05, 5.01E+05, 4.33E+05, 4.05E+05, &
+      3.27E+05, 2.54E+05, 2.03E+05, 1.74E+05, 1.52E+05/
+   ! HO2
+   DATA(xl(29, k_loop), k_loop=1, kx) &
+      /5.74E+07, 5.74E+07, 7.42E+07, 8.38E+07, 8.87E+07, &
+      9.76E+07, 1.15E+08, 1.34E+08, 1.46E+08, 1.44E+08, 1.40E+08, &
+      1.36E+08, 1.31E+08, 1.28E+08, 1.26E+08, 1.26E+08/
+   ! NO3+N2O5
+   DATA(xl(30, k_loop), k_loop=1, kx) &
+      /5.52E+05, 5.52E+05, 3.04E+05, 2.68E+05, 2.32E+05, &
+      1.66E+05, 1.57E+05, 1.72E+05, 1.98E+05, 2.22E+05, 2.43E+05, &
+      2.75E+05, 3.00E+05, 3.18E+05, 3.32E+05, 3.39E+05/
+   ! HO2NO2
+   DATA(xl(31, k_loop), k_loop=1, kx) &
+      /7.25E+07, 7.25E+07, 6.36E+07, 5.55E+07, 4.94E+07, &
+      3.66E+07, 2.01E+07, 9.57E+06, 4.75E+06, 2.37E+06, 1.62E+06, &
+      9.86E+05, 7.05E+05, 5.63E+05, 4.86E+05, 4.41E+05/
+   ! Sum of RO2 &
+   DATA(xl(32, k_loop), k_loop=1, kx) &
+      /9.14E+06, 9.14E+06, 1.46E+07, 2.14E+07, 2.76E+07, &
+      3.62E+07, 5.47E+07, 1.19E+08, 2.05E+08, 2.25E+08, 2.39E+08, &
+      2.58E+08, 2.82E+08, 2.99E+08, 3.08E+08, 3.15E+08/
+   ! O3 <--This is not the O3 used for RADM2 or CBMZ (wig)
+   DATA(xl(33, k_loop), k_loop=1, kx) &
+      /8.36E+11, 8.36E+11, 4.26E+11, 4.96E+11, 6.05E+11, &
+      6.93E+11, 7.40E+11, 7.74E+11, 7.82E+11, 7.75E+11, 7.69E+11, &
+      7.59E+11, 7.54E+11, 7.50E+11, 7.47E+11, 7.45E+11/
+   ! NOx (NO+NO2)
+   DATA(xl(34, k_loop), k_loop=1, kx) &
+      /1.94E+09, 1.94E+09, 1.53E+09, 1.24E+09, 1.04E+09, &
+      8.96E+08, 7.94E+08, 7.11E+08, 6.44E+08, 6.00E+08, 5.70E+08, &
+      5.49E+08, 5.35E+08, 5.28E+08, 5.24E+08, 5.23E+08/
 
 contains
    ! get_last_gas
