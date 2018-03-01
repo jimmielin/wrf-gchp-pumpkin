@@ -24,102 +24,56 @@ subroutine chem_driver(grid, config_flags &
 )
 
    !! WRF Interfaces
-   USE module_domain, only:domain
-   USE module_configure
-   USE module_driver_constants
-   USE module_machine
-   USE module_tiles
-   USE module_dm
-   USE module_model_constants
-   USE module_state_description
+   use module_domain, only:domain
+   use module_configure
+   use module_driver_constants
+   use module_machine
+   use module_tiles
+   use module_dm
+   use module_model_constants
+   use module_state_description
 
-   !! Chemistry Stub Interfaces
-   USE module_chem_utilities
-   USE module_aer_opt_out, only:aer_opt_out
-   USE module_input_chem_data, only:last_chem_time, &
+   !! chemistry stub interfaces
+   use module_chem_utilities
+   use module_aer_opt_out, only:aer_opt_out
+   use module_input_chem_data, only:last_chem_time, &
 #if (defined(CHEM_DBG_I) && defined(CHEM_DBG_J) && defined(CHEM_DBG_K))
                                     chem_dbg, &
 #endif
       get_last_gas
 
-   USE module_upper_bc_driver, only:upper_bc_driver
-   USE module_tropopause, only:tropopause_driver
+   use module_upper_bc_driver, only:upper_bc_driver
+   use module_tropopause, only:tropopause_driver
 
-   IMPLICIT NONE
-
-   ! BSINGH(PNNL)- Lahey compiler forces to declare the following interface
-   interface
-      SUBROUTINE sum_pm_driver(config_flags, &
-                               alt, chem, h2oaj, h2oai, &
-                               pm2_5_dry, pm2_5_water, pm2_5_dry_ec, pm10, &
-                               hoa_a01, hoa_a02, hoa_a03, hoa_a04, &
-                               bboa_a01, bboa_a02, bboa_a03, bboa_a04, &
-                               soa_a01, soa_a02, soa_a03, soa_a04, &
-                               bbsoa_a01, bbsoa_a02, bbsoa_a03, bbsoa_a04, &
-                               hsoa_a01, hsoa_a02, hsoa_a03, hsoa_a04, &
-                               biog_a01, biog_a02, biog_a03, biog_a04, &
-                               asmpsoa_a01, asmpsoa_a02, asmpsoa_a03, asmpsoa_a04, &
-                               arosoa_a01, arosoa_a02, arosoa_a03, arosoa_a04, &
-                               totoa_a01, totoa_a02, totoa_a03, totoa_a04, &
-                               hsoa_c, hsoa_o, bbsoa_c, bbsoa_o, &
-                               biog_v1, biog_v2, biog_v3, biog_v4, &
-                               ant_v1, ant_v2, ant_v3, ant_v4, &
-                               smpa_v1, smpbb_v1, &
-                               ids, ide, jds, jde, kds, kde, &
-                               ims, ime, jms, jme, kms, kme, &
-                               its, ite, jts, jte, kts, kte)
-
-         USE module_configure
-
-         IMPLICIT NONE
-
-         integer, INTENT(IN)    :: &
-            ids, ide, jds, jde, kds, kde, &
-            ims, ime, jms, jme, kms, kme, &
-            its, ite, jts, jte, kts, kte
-
-         real, dimension(ims:ime, kms:kme, jms:jme, num_chem), &
-            INTENT(IN) :: chem
-
-         real, dimension(ims:ime, kms:kme, jms:jme), &
-            INTENT(IN) :: alt
-         real, dimension(ims:ime, kms:kme, jms:jme), &
-            OPTIONAL, &
-            INTENT(IN) :: h2oaj, h2oai
-
-         real, dimension(ims:ime, kms:kme, jms:jme), &
-            OPTIONAL, &
-            INTENT(OUT) :: pm2_5_dry, pm2_5_water, pm2_5_dry_ec, pm10, &
-                           hoa_a01, hoa_a02, hoa_a03, hoa_a04, &
-                           bboa_a01, bboa_a02, bboa_a03, bboa_a04, &
-                           soa_a01, soa_a02, soa_a03, soa_a04, &
-                           bbsoa_a01, bbsoa_a02, bbsoa_a03, bbsoa_a04, &
-                           hsoa_a01, hsoa_a02, hsoa_a03, hsoa_a04, &
-                           biog_a01, biog_a02, biog_a03, biog_a04, &
-                           arosoa_a01, arosoa_a02, arosoa_a03, arosoa_a04, &
-                           totoa_a01, totoa_a02, totoa_a03, totoa_a04, &
-                           hsoa_c, hsoa_o, bbsoa_c, bbsoa_o, &
-                           biog_v1, biog_v2, biog_v3, biog_v4, &
-                           ant_v1, ant_v2, ant_v3, ant_v4, &
-                           smpa_v1, &
-                           smpbb_v1, &
-                           asmpsoa_a01, asmpsoa_a02, asmpsoa_a03, asmpsoa_a04
-
-         TYPE(grid_config_rec_type), INTENT(IN)    :: config_flags
-
-      end SUBROUTINE sum_pm_driver
-   end interface
+   implicit none
 
    !  Input data.
    TYPE(domain), TARGET :: grid
 
-   !
    !  Definitions of dummy arguments to solve
 # include <dummy_new_decl.inc>
 # define NO_I1_OLD
 
    TYPE(grid_config_rec_type), INTENT(IN) :: config_flags
 
+   !-- ids           start index for i in domain
+   !-- ide           end index for i in domain
+   !-- jds           start index for j in domain
+   !-- jde           end index for j in domain
+   !-- kds           start index for k in domain
+   !-- kde           end index for k in domain
+   !-- ims           start index for i in memory
+   !-- ime           end index for i in memory
+   !-- jms           start index for j in memory
+   !-- jme           end index for j in memory
+   !-- kms           start index for k in memory
+   !-- kme           end index for k in memory
+   !-- its           start index for i in tile
+   !-- ite           end index for i in tile
+   !-- jts           start index for j in tile
+   !-- jte           end index for j in tile
+   !-- kts           start index for k in tile
+   !-- kte           end index for k in tile
    integer :: ids, ide, jds, jde, kds, kde, &
               ims, ime, jms, jme, kms, kme, &
               ips, ipe, jps, jpe, kps, kpe, &
@@ -129,49 +83,34 @@ subroutine chem_driver(grid, config_flags &
 ! .. Local Scalars ..
    integer :: stepave, i, j, k, l, numgas, nv, n, nr, ktau, k_start, k_end, idf, jdf, kdf
    integer :: ijulian
-! UoC dust scheme option
-   integer :: imod
 
-   real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33) ::vcsulf_old, vcso2_old, vch2o2_old
-
-   real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33) ::n2o5_het
    real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33) :: &
       p_phy, u_phy, v_phy &
       , t_phy, dz8w, t8w, p8w &
       , rho, rri, z_at_w, vvel, zmid, rh
    real, dimension(grid%sm31:grid%em31, grid%sm33:grid%em33) :: pbl_h
-   real, dimension(grid%sm31:grid%em31, grid%sm33:grid%em33, 5) :: seasin, dustin
-   real, dimension(grid%sm32:grid%em32-1) :: QL, TL
-   real, dimension(grid%sm31:grid%em31, grid%sm33:grid%em33) :: REXNSFC, FACTRS, TOT, TSFC
-
-   ! temporary arrays for old chemistry values
-   real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33, num_chem_ct) :: chem_old
-   integer, dimension(num_chem_ct) :: chem_ct_indices
 
 ! Variables for adaptive time steps...
    TYPE(WRFU_TimeInterval) :: tmpTimeInterval
    real(KIND=8) :: curr_secs
-   real(KIND=8) :: real_time_r8 !ext. function in adapt_timestep_em.F
+   real(KIND=8) :: real_time_r8 ! ext. function in adapt_timestep_em.F
    logical      :: adapt_step_flag, do_chemstep, do_photstep
 
-   real :: DAYI, DPL, FICE, FRAIN, HOUR, PLYR, QI, QR, QW, RADT, TIMES, WC, TDUM, WMSK, RWMSK
-   integer                         :: ij
-   integer                         :: im, num_3d_m, ic, num_3d_c, num_3d_s
-   integer                         :: ijds, ijde
-   integer                         :: ksubt
+   integer :: ij
+   integer :: im, num_3d_m, ic, num_3d_c, num_3d_s
+   integer :: ijds, ijde
+   integer :: ksubt
 
    real :: epsilc
+   ! From module_ctrans_grell
+   parameter(epsilc=1.e-30)
+
    real :: chem_minval, dtstepc
 
-   real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33) :: &
-      del_h2so4_gasprod ! change to h2so4 during gas-phase chemistry, cam_mam packages
-
-   logical :: haveaer
-   CHARACTER(LEN=1000) :: msg
-   CHARACTER(LEN=256) :: current_date_char
+   character(len=256) :: current_date_char
    integer :: current_month
 
-   INTRINSIC max, min
+   intrinsic max, min
 
 !
 ! Setup the adaptive timestep for the chem routines. Most of this follows
@@ -188,23 +127,10 @@ subroutine chem_driver(grid, config_flags &
    ijulian = ifix(grid%julian)
 
    ! initializing diagnostics and macros
-
    if (ktau == 1) then
       grid%conv_ct(:, :, :, :) = 0.
       grid%chem_ct(:, :, :, :) = 0.
       grid%vmix_ct(:, :, :, :) = 0.
-   endif
-
-   if (config_flags%chemdiag == USECHEMDIAG) then
-      ! modify tendency list here
-      chem_ct_indices(p_chem_co) = p_co
-      chem_ct_indices(p_chem_o3) = p_o3
-      chem_ct_indices(p_chem_no) = p_no
-      chem_ct_indices(p_chem_no2) = p_no2
-      chem_ct_indices(p_chem_hno3) = p_hno3
-      chem_ct_indices(p_chem_iso) = p_iso
-      chem_ct_indices(p_chem_ho) = p_ho
-      chem_ct_indices(p_chem_ho2) = p_ho2
    endif
 
    !! -- Check whether to do chemistry steps (do_chemstep bool) -- !!
@@ -238,13 +164,9 @@ subroutine chem_driver(grid, config_flags &
                           ims, ime, jms, jme, kms, kme, &
                           ips, ipe, jps, jpe, kps, kpe)
 
-! following two lines needed for MEGAN
    CALL domain_clock_get(grid, current_timestr=current_date_char)
    read (current_date_char(6:7), FMT='(I2)') current_month
 
-!
-! initialize
-!
    grid%raincv_b(:, :) = grid%raincv(:, :)
 
    num_3d_m = num_moist
@@ -253,24 +175,20 @@ subroutine chem_driver(grid, config_flags &
    numgas = get_last_gas(config_flags%chem_opt)
 
 ! Compute these starting and stopping locations for each tile and number of tiles.
-   CALL set_tiles(grid, ids, ide, jds, jde, ips, ipe, jps, jpe)
+   call set_tiles(grid, ids, ide, jds, jde, ips, ipe, jps, jpe)
    k_start = kps
    k_end = kpe
 
    ijds = min(ids, jds)
    ijde = max(ide, jde)
 
-   ! From module_ctrans_grell (175)
-   epsilc=1.e-30
-
-   chem_minval = epsilc !chem_minval can be case dependant and set below...
-   chem_select: SELECT CASE(config_flags%chem_opt)
-CASE (1)
-   CALL wrf_debug(15, 'Pumpkin chem_driver: chem_opt = 1, initializing chemistry option')
-   haveaer = .false.
-CASE DEFAULT
-   call wrf_error_fatal("Pumpkin chem_driver: Unrecognized chem_opt")
-   END SELECT chem_select
+   chem_minval = epsilc ! chem_minval can be case dependant and set below...
+   chem_select: select case(config_flags%chem_opt)
+      case (1)
+         call wrf_debug(15, 'Pumpkin chem_driver: chem_opt = 1, initializing chemistry option')
+      case default
+         call wrf_error_fatal("Pumpkin chem_driver: Unrecognized chem_opt")
+   end select chem_select
 
    do nv = 1, num_chem
       do j = jps, jpe
@@ -309,25 +227,6 @@ CASE DEFAULT
 
 !$OMP PARALLEL DO   &
 !$OMP PRIVATE ( ij, its, ite, jts, jte )
-
-!-- ids           start index for i in domain
-!-- ide           end index for i in domain
-!-- jds           start index for j in domain
-!-- jde           end index for j in domain
-!-- kds           start index for k in domain
-!-- kde           end index for k in domain
-!-- ims           start index for i in memory
-!-- ime           end index for i in memory
-!-- jms           start index for j in memory
-!-- jme           end index for j in memory
-!-- kms           start index for k in memory
-!-- kme           end index for k in memory
-!-- its           start index for i in tile
-!-- ite           end index for i in tile
-!-- jts           start index for j in tile
-!-- jte           end index for j in tile
-!-- kts           start index for k in tile
-!-- kte           end index for k in tile
    chem_tile_loop_1: DO ij = 1, grid%num_tiles
       its = grid%i_start(ij)
       ite = min(grid%i_end(ij), ide - 1)
@@ -356,66 +255,6 @@ CASE DEFAULT
       if ((its <= CHEM_DBG_I .and. ite >= CHEM_DBG_I) .and. &
           (jts <= CHEM_DBG_J .and. jte >= CHEM_DBG_J) .and. &
           (k_start <= CHEM_DBG_K .and. k_end >= CHEM_DBG_K)) then
-         call wrf_debug(15, "calling chem_dbg at top of chem_driver")
-         call chem_dbg(CHEM_DBG_I, CHEM_DBG_J, CHEM_DBG_K, grid%dt, ktau, &
-                       dz8w, t_phy, p_phy, rho, chem, emis_ant, &
-                       ids, ide, jds, jde, kds, kde, &
-                       ims, ime, jms, jme, kms, kme, &
-                       its, ite, jts, jte, kts, kte, &
-                       config_flags%kemit)
-      end if
-#endif
-
-#if (defined(CHEM_DBG_I) && defined(CHEM_DBG_J) && defined(CHEM_DBG_K))
-      if ((its <= CHEM_DBG_I .and. ite >= CHEM_DBG_I) .and. &
-          (jts <= CHEM_DBG_J .and. jte >= CHEM_DBG_J) .and. &
-          (k_start <= CHEM_DBG_K .and. k_end >= CHEM_DBG_K)) then
-         call wrf_debug(15, 'calling chem_dbg after emissions_driver')
-         call chem_dbg(CHEM_DBG_I, CHEM_DBG_J, CHEM_DBG_K, grid%dt, ktau, &
-                       dz8w, t_phy, p_phy, rho, chem, emis_ant, &
-                       ids, ide, jds, jde, kds, kde, &
-                       ims, ime, jms, jme, kms, kme, &
-                       its, ite, jts, jte, kts, kte, &
-                       config_flags%kemit)
-      end if
-#endif
-
-#if (defined(CHEM_DBG_I) && defined(CHEM_DBG_J) && defined(CHEM_DBG_K))
-      if ((its <= CHEM_DBG_I .and. ite >= CHEM_DBG_I) .and. &
-          (jts <= CHEM_DBG_J .and. jte >= CHEM_DBG_J) .and. &
-          (k_start <= CHEM_DBG_K .and. k_end >= CHEM_DBG_K)) then
-         call wrf_debug(15, 'calling chem_dbg after photolysis_driver')
-         call chem_dbg(CHEM_DBG_I, CHEM_DBG_J, CHEM_DBG_K, grid%dt, ktau, &
-                       dz8w, t_phy, p_phy, rho, chem, emis_ant, &
-                       ids, ide, jds, jde, kds, kde, &
-                       ims, ime, jms, jme, kms, kme, &
-                       its, ite, jts, jte, kts, kte, &
-                       config_flags%kemit, &
-                       grid%ph_macr, grid%ph_o31d, grid%ph_o33p, grid%ph_no2, grid%ph_no3o2, &
-                       grid%ph_no3o, grid%ph_hno2, grid%ph_hno3, grid%ph_hno4, grid%ph_h2o2, &
-                       grid%ph_ch2or, grid%ph_ch2om, grid%ph_ch3cho, grid%ph_ch3coch3, &
-                       grid%ph_ch3coc2h5, grid%ph_hcocho, grid%ph_ch3cocho, &
-                       grid%ph_hcochest, grid%ph_ch3o2h, grid%ph_ch3coo2h, &
-                       grid%ph_ch3ono2, grid%ph_hcochob, grid%ph_n2o5, grid%ph_o2)
-      end if
-#endif
-
-! save old concentrations for vertical mixing tendencies
-      DO nv = PARAM_FIRST_SCALAR, num_chem_ct
-         chem_old(its:ite, kts:kte, jts:jte, nv) = chem(its:ite, kts:kte, jts:jte, chem_ct_indices(nv))
-      ENDDO
-
-! accumulate vertical mixing tendencies
-!   DO nv = PARAM_FIRST_SCALAR,num_chem_ct
-!      grid%vmix_ct(its:ite,kts:kte,jts:jte,nv) = grid%vmix_ct(its:ite,kts:kte,jts:jte,nv) + &
-!                                                        (chem(its:ite,kts:kte,jts:jte,chem_ct_indices(nv)) - &
-!                                                     chem_old(its:ite,kts:kte,jts:jte,nv))
-!  ENDDO
-
-#if (defined(CHEM_DBG_I) && defined(CHEM_DBG_J) && defined(CHEM_DBG_K))
-      if ((its <= CHEM_DBG_I .and. ite >= CHEM_DBG_I) .and. &
-          (jts <= CHEM_DBG_J .and. jte >= CHEM_DBG_J) .and. &
-          (k_start <= CHEM_DBG_K .and. k_end >= CHEM_DBG_K)) then
          call wrf_debug(15, 'calling chem_dbg after dry_deposition_driver')
          call chem_dbg(CHEM_DBG_I, CHEM_DBG_J, CHEM_DBG_K, grid%dt, ktau, &
                        dz8w, t_phy, p_phy, rho, chem, emis_ant, &
@@ -435,14 +274,33 @@ CASE DEFAULT
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!  CHEMISTRY DRIVER/ MECHANISM (do_timestep)
-
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    if (do_chemstep) then
-
       !! -- Stubbed out: do_chemstep (used to call mechanism_driver) -- !!
+      ! An example call would be below (check what you have available):
+      ! call mechanism_driver(grid%id, curr_secs, ktau, grid%dt, grid%ktauc, dtstepc, config_flags, &
+      !                         grid%gmt, ijulian, t_phy, moist, p8w, t8w, grid%gd_cldfr, &
+      !                         p_phy, chem, rho, dz8w, grid%dx, g, &
+      !                         zmid, z_at_w, grid%xlat, grid%xlong, &
+      !                         grid%ttday, grid%tcosz, &
+      !                         grid%ph_macr, grid%ph_o31d, grid%ph_o33p, grid%ph_no2, grid%ph_no3o2, &
+      !                         grid%ph_no3o, grid%ph_hno2, grid%ph_hno3, grid%ph_hno4, grid%ph_h2o2, &
+      !                         grid%ph_ch2or, grid%ph_ch2om, grid%ph_ch3cho, grid%ph_ch3coch3, &
+      !                         grid%ph_ch3coc2h5, grid%ph_hcocho, grid%ph_ch3cocho, grid%ph_hcochest, &
+      !                         grid%ph_ch3o2h, grid%ph_ch3coo2h, grid%ph_ch3ono2, grid%ph_hcochob, &
+      !                         grid%ph_n2o5, grid%ph_o2, grid%backg_oh, grid%backg_h2o2, grid%backg_no3, &
+      !                         grid%addt, grid%addx, grid%addc, grid%etep, &
+      !                         grid%oltp, grid%olip, grid%cslp, grid%limp, grid%hc5p, grid%hc8p, grid%tolp, &
+      !                         grid%xylp, grid%apip, grid%isop, grid%hc3p, grid%ethp, grid%o3p, grid%tco3, &
+      !                         grid%mo2, grid%o1d, grid%olnn, grid%rpho, grid%xo2, &
+      !                         grid%ketp, grid%olnd, &
+      !                         ids, ide, jds, jde, kds, kde, &
+      !                         ims, ime, jms, jme, kms, kme, &
+      !                         its, ite, jts, jte, kts, kte)
 
    end if ! Chemistry time step check
 
-! Fill top level to prevent spurious interpolation results (no extrapolation)
+   ! Fill top level to prevent spurious interpolation results (no extrapolation)
    do nv = 1, num_chem
       do j = jts, jte
          do i = its, ite
@@ -465,7 +323,6 @@ CASE DEFAULT
      &        , IDS=ids, IDE=ide, JDS=jds, JDE=jde, KDS=kds, KDE=kde                                 &
      &        , IMS=ims, IME=ime, JMS=jms, JME=jme, KMS=kms, KME=kme                                 &
      &        , its=its, ite=ite, jts=jts, jte=jte, kts=kts, kte=kte)
-
    endif
 
 !-- set upper boundary condition
@@ -483,8 +340,7 @@ CASE DEFAULT
                            ims, ime, jms, jme, kms, kme, &
                            its, ite, jts, jte, kts, kte)
    endif
-
-END DO chem_tile_loop_1
+end do chem_tile_loop_1
 
 !-- Work around for dgnum and dgnumwet not being written to restart files.
 !-- NOTE hplin 2/20/2018: Might need to stub this out for WRF to operate correctly (3.6.1)
