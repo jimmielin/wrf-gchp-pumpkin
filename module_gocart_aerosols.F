@@ -35,22 +35,22 @@ CONTAINS
                                      ids, ide, jds, jde, kds, kde, &
                                      ims, ime, jms, jme, kms, kme, &
                                      its, ite, jts, jte, kts, kte)
-      USE module_configure
-      USE module_state_description
-      IMPLICIT NONE
-      TYPE(grid_config_rec_type), INTENT(IN)    :: config_flags
+      use module_configure
+      use module_state_description
+      implicit none
+      type(grid_config_rec_type), intent(in)    :: config_flags
 
-      INTEGER, INTENT(IN) :: ktau, &
+      integer, intent(in) :: ktau, &
                              ids, ide, jds, jde, kds, kde, &
                              ims, ime, jms, jme, kms, kme, &
                              its, ite, jts, jte, kts, kte
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme, num_moist), &
-         INTENT(IN) :: moist
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme, num_chem), &
-         INTENT(INOUT) :: chem
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), &
-         INTENT(IN) :: t_phy, dz8w, p8w, rho_phy
-      REAL, INTENT(IN) :: dt, dx, g
+      real, dimension(ims:ime, kms:kme, jms:jme, num_moist), &
+         intent(in) :: moist
+      real, dimension(ims:ime, kms:kme, jms:jme, num_chem), &
+         intent(inout) :: chem
+      real, dimension(ims:ime, kms:kme, jms:jme), &
+         intent(in) :: t_phy, dz8w, p8w, rho_phy
+      real, intent(in) :: dt, dx, g
 
       !! Stub
    end subroutine gocart_aerosols_driver
@@ -63,17 +63,17 @@ CONTAINS
 
       USE module_configure
       USE module_state_description
-      IMPLICIT NONE
+      implicit none
 
-      INTEGER, INTENT(IN) :: ids, ide, jds, jde, kds, kde, &
+      integer, intent(in) :: ids, ide, jds, jde, kds, kde, &
                              ims, ime, jms, jme, kms, kme, &
                              its, ite, jts, jte, kts, kte
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), &
-         INTENT(INOUT) :: pm2_5_dry, pm2_5_dry_ec, pm10
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), &
-         INTENT(IN) :: alt
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme, num_chem), &
-         INTENT(IN) :: chem
+      real, dimension(ims:ime, kms:kme, jms:jme), &
+         intent(inout) :: pm2_5_dry, pm2_5_dry_ec, pm10
+      real, dimension(ims:ime, kms:kme, jms:jme), &
+         intent(in) :: alt
+      real, dimension(ims:ime, kms:kme, jms:jme, num_chem), &
+         intent(in) :: chem
 
       !! Stub
    end subroutine sum_pm_gocart

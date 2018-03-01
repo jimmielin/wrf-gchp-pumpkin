@@ -39,8 +39,9 @@ module module_aerosols_soa_vbs
       ids, ide, jds, jde, kds, kde, &
       ims, ime, jms, jme, kms, kme, &
       its, ite, jts, jte, kts, kte)
+      use module_state_description, only: num_chem
 
-      integer, intent(in) ::     dust_opt, &
+      integer, intent(in) :: dust_opt, &
                              ids, ide, jds, jde, kds, kde, &
                              ims, ime, jms, jme, kms, kme, &
                              its, ite, jts, jte, kts, kte

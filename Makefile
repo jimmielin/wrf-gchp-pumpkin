@@ -12,6 +12,7 @@ RM      =       rm -f
 MODULES =                                 \
         module_data_radm2.o \
         module_data_sorgam.o \
+        module_data_mosaic_asect.o \
         module_chem_utilities.o \
         module_interpolate.o \
         module_vertmx_wrf.o \

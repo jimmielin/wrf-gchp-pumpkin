@@ -50,7 +50,5 @@ contains
       real, dimension(ims:ime, kms:kme, jms:jme), &
          intent(out) :: pm2_5_dry, pm2_5_water, pm2_5_dry_ec, pm10
 
-      integer :: i, ii, j, jj, k, n
-
    end subroutine sum_pm_sorgam
 end module module_aerosols_sorgam
