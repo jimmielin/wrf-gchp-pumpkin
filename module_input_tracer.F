@@ -1,7 +1,30 @@
-! This is stubbed for the purpose of satisfying a dependency in solve_em.F
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+!   WRF-GCHP
+!   GEOS-Chem High Performance-powered Chemistry Add-On for WRF Model
+!
+!   WRF & GCHP are (c) their original authors.
+!   WRF-GCHP coupling layer (WGCL) is (c) Atmospheric Chemistry and Climate Group, Peking University
+!
+!   Developed by Haipeng Lin <linhaipeng@pku.edu.cn>, Xu Feng, 2018-01
+!   Peking University, School of Physics
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+!   Codename Pumpkin: Abstracted Bindings for Chemistry-to-WRF
+!
+!   This Chemical Interface (chem/) is written after comprehensive study of
+!   the original chem_driver.f from WRF-Chem v3.6.1
+!   which is (c) their respective authors.
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+!  MODULE: module_input_chem_data
+!  DESCRIPTION: Stub of the input_tracer module to satisfy a dependency in solve_em.F
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 module module_input_tracer
-   use module_state_description, only:tracer_smoke,tracer_test1,tracer_test2,param_first_scalar,p_tr17_1,p_tr17_2,p_tr17_3,p_tr17_4,p_tr17_5,p_tr17_6,p_tr17_7,p_tr17_8
 contains
    subroutine initialize_tracer(chem, chem_in_opt, &
                                 tracer_opt, num_chem, &

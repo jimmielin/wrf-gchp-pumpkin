@@ -1,9 +1,31 @@
+################################################################################
 #
-#  Changing this file requires mods to 
-#	WRFV3_top/chem/KPP/util/wkc/change_chem_Makefile.c
-#	Right now it looks at the line in MODULES with module_data_sorgam
-#	AND it cares about the word DEPENDENCIES.  DO NOT EVEN CHANGE
-#	SPACING ON THESE TWO LINES.
+#   WRF-GCHP
+#   GEOS-Chem High Performance-powered Chemistry Add-On for WRF Model
+#
+#   WRF & GCHP are (c) their original authors.
+#   WRF-GCHP coupling layer (WGCL) is (c) Atmospheric Chemistry and Climate Group, Peking University
+#
+#   Developed by Haipeng Lin <linhaipeng@pku.edu.cn>, Xu Feng, 2018-01
+#   Peking University, School of Physics
+#
+################################################################################
+#
+#   Codename Pumpkin: Abstracted Bindings for Chemistry-to-WRF
+#
+#   This Chemical Interface (chem/) is written after comprehensive study of
+#   the original chem_driver.f from WRF-Chem v3.6.1
+#   which is (c) their respective authors.
+#
+################################################################################
+#
+#  Makefile
+#
+#  A generic makefile that compiles a hollow "chem" shell.
+#  You will want to customize this so it compiles your chemistry along with this
+#  component.
+#
+################################################################################
 
 LN      =       ln -sf
 MAKE    =       make -i -r
@@ -15,7 +37,6 @@ MODULES =                                 \
         module_data_mosaic_asect.o \
         module_chem_utilities.o \
         module_interpolate.o \
-        module_vertmx_wrf.o \
         module_aer_opt_out.o \
         module_tropopause.o \
         module_upper_bc_driver.o \
