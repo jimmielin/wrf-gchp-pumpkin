@@ -153,7 +153,7 @@ subroutine chem_driver(grid, config_flags &
    if (ktau == 1) then
       do_chemstep = .true.
       grid%ktauc = 1
-   else then
+   else
       if ((grid%chemdt <= 0) .or. &
           (curr_secs + real(grid%dt, 8) + 0.01 >= &
            (int(curr_secs/real(grid%chemdt*60., 8) + 1, 8)*real(grid%chemdt*60., 8))) &
