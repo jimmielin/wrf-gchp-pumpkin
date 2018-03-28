@@ -119,24 +119,6 @@ contains
          intent(out) :: pm2_5_dry, pm2_5_water, pm2_5_dry_ec, pm10
    end subroutine sum_pm_mosaic
 
-   subroutine init_data_mosaic_asect(n2o5_hetchem, is_aerosol)
-      use module_state_description, only: num_chem
-      implicit none
-      logical, intent(out) :: is_aerosol(num_chem)
-      integer, intent(in) :: n2o5_hetchem
-
-   end subroutine init_data_mosaic_asect
-
-   subroutine init_data_mosaic_ptr(is_aerosol)
-      use module_state_description, only: num_chem
-      implicit none
-      logical, intent(out) :: is_aerosol(num_chem)
-
-      !! Stubbed out completely
-
-      return
-   end subroutine init_data_mosaic_ptr
-
    subroutine aerchem_debug_dump(iflag, iclm, jclm, dtchem)
       implicit none
       integer iflag, iclm, jclm

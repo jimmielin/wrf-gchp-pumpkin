@@ -42,8 +42,8 @@ subroutine chem_driver(grid, config_flags &
 #endif
       get_last_gas
 
-   use module_upper_bc_driver, only:upper_bc_driver
-   use module_tropopause, only:tropopause_driver
+   use module_upper_bc_driver, only: upper_bc_driver
+   use module_tropopause, only: tropopause_driver
 
    implicit none
 
@@ -62,47 +62,63 @@ subroutine chem_driver(grid, config_flags &
    !-- jde           end index for j in domain
    !-- kds           start index for k in domain
    !-- kde           end index for k in domain
+
    !-- ims           start index for i in memory
    !-- ime           end index for i in memory
    !-- jms           start index for j in memory
    !-- jme           end index for j in memory
    !-- kms           start index for k in memory
    !-- kme           end index for k in memory
+
    !-- its           start index for i in tile
    !-- ite           end index for i in tile
    !-- jts           start index for j in tile
    !-- jte           end index for j in tile
    !-- kts           start index for k in tile
    !-- kte           end index for k in tile
+
+   !-- ips           start index for i in patch
+   !-- ipe           end index for i in patch
+   !-- jps           start index for j in patch
+   !-- jpe           end index for j in patch
+
    integer :: ids, ide, jds, jde, kds, kde, &
               ims, ime, jms, jme, kms, kme, &
               ips, ipe, jps, jpe, kps, kpe, &
               its, ite, jts, jte, kts, kte
 
-! ..
-! .. Local Scalars ..
+
+   ! Local Scalars
    integer :: stepave, i, j, k, l, numgas, nv, n, nr, ktau, k_start, k_end, idf, jdf, kdf
    integer :: ijulian
 
+   ! Memorder XZY: %s-em31 is I, %s-em32 is K, %s-em33 is J
+   ! Local Variables computed for chemistry usage.
+   !
+   ! To pass physics (meteo) variable to CHEMISTRY, edit this to create new local variables
+   ! (sized as ims:ime, kms:kme, jms:jme)
+   !
+   ! Modify the call to module_chem_utilities::chem_prep,
+   ! and modify the calls to external_driver as necessary.
    real, dimension(grid%sm31:grid%em31, grid%sm32:grid%em32, grid%sm33:grid%em33) :: &
-      p_phy, u_phy, v_phy &
-      , t_phy, dz8w, t8w, p8w &
-      , rho, rri, z_at_w, vvel, zmid, rh
+      p_phy, u_phy, v_phy, t_phy, dz8w, t8w, p8w, rho, rri, z_at_w, vvel, zmid, rh
+
+   ! PBL Height, dimension is (I x J) obviously...
    real, dimension(grid%sm31:grid%em31, grid%sm33:grid%em33) :: pbl_h
 
-! Variables for adaptive time steps...
+   ! Variables for calculating adaptive timesteps.
    TYPE(WRFU_TimeInterval) :: tmpTimeInterval
    real(KIND=8) :: curr_secs
    real(KIND=8) :: real_time_r8 ! ext. function in adapt_timestep_em.F
-   logical      :: adapt_step_flag, do_chemstep, do_photstep
+   logical      :: do_chemstep
 
    integer :: ij
    integer :: im, num_3d_m, ic, num_3d_c, num_3d_s
    integer :: ijds, ijde
    integer :: ksubt
 
+   ! From module_ctrans_grell - used for setting a minimum range on chemistry species.
    real :: epsilc
-   ! From module_ctrans_grell
    parameter(epsilc=1.e-30)
 
    real :: chem_minval, dtstepc
@@ -112,15 +128,14 @@ subroutine chem_driver(grid, config_flags &
 
    intrinsic max, min
 
-!
-! Setup the adaptive timestep for the chem routines. Most of this follows
-! what is in solve_em, except for the call to adjust time_step.
-!
+   !
+   ! Setup the adaptive timestep for the chem routines. Most of this follows
+   ! what is in solve_em, except for the call to adjust time_step.
+   !
    ! The necesssary variables exist for the EM core and using the adaptive
    ! techniques will work even with a constant time step. In fact, they
    ! prevent issues with restarts and changed time steps. So, we will
    ! always use them with the EM core.
-   adapt_step_flag = .TRUE.
    ktau = grid%itimestep
    tmpTimeInterval = domain_get_time_since_sim_start(grid)
    curr_secs = real_time_r8(tmpTimeInterval)
@@ -133,15 +148,15 @@ subroutine chem_driver(grid, config_flags &
       grid%vmix_ct(:, :, :, :) = 0.
    endif
 
-   !! -- Check whether to do chemistry steps (do_chemstep bool) -- !!
+   ! Check whether to do chemistry steps (do_chemstep logical)
    do_chemstep = .false.
-   IF (ktau == 1) then
+   if (ktau == 1) then
       do_chemstep = .true.
       grid%ktauc = 1
-   ELSE IF (adapt_step_flag) THEN
-      IF ((grid%chemdt <= 0) .or. &
+   else then
+      if ((grid%chemdt <= 0) .or. &
           (curr_secs + real(grid%dt, 8) + 0.01 >= &
-           (INT(curr_secs/real(grid%chemdt*60., 8) + 1, 8)*real(grid%chemdt*60., 8))) &
+           (int(curr_secs/real(grid%chemdt*60., 8) + 1, 8)*real(grid%chemdt*60., 8))) &
           ) then
          do_chemstep = .true.
          grid%ktauc = grid%ktauc + 1
@@ -153,28 +168,26 @@ subroutine chem_driver(grid, config_flags &
                            H=grid%last_chem_time_hour, &
                            M=grid%last_chem_time_minute, &
                            S=grid%last_chem_time_second)
-      ENDIF
-   ELSE IF ((MOD(ktau, grid%stepchem) == 0) .or. (grid%stepchem == 1)) THEN
-      do_chemstep = .true.
-      grid%ktauc = max(ktau/grid%stepchem, 1)
-   ENDIF
+      endif
+   endif
 
-   CALL get_ijk_from_grid(grid, &
+   call get_ijk_from_grid(grid, &
                           ids, ide, jds, jde, kds, kde, &
                           ims, ime, jms, jme, kms, kme, &
                           ips, ipe, jps, jpe, kps, kpe)
 
-   CALL domain_clock_get(grid, current_timestr=current_date_char)
+   call domain_clock_get(grid, current_timestr=current_date_char)
    read (current_date_char(6:7), FMT='(I2)') current_month
 
    grid%raincv_b(:, :) = grid%raincv(:, :)
 
+   ! Number of moist variables
    num_3d_m = num_moist
    num_3d_c = num_chem
    num_3d_s = num_scalar
    numgas = get_last_gas(config_flags%chem_opt)
 
-! Compute these starting and stopping locations for each tile and number of tiles.
+   ! Compute these starting and stopping locations for each tile and number of tiles.
    call set_tiles(grid, ids, ide, jds, jde, ips, ipe, jps, jpe)
    k_start = kps
    k_end = kpe
@@ -185,7 +198,7 @@ subroutine chem_driver(grid, config_flags &
    chem_minval = epsilc ! chem_minval can be case dependant and set below...
    chem_select: select case(config_flags%chem_opt)
       case (1)
-         call wrf_debug(15, 'Pumpkin chem_driver: chem_opt = 1, initializing chemistry option')
+         call wrf_debug(15, 'Pumpkin chem_driver: chem_opt = 1. Running chemistry option.')
       case default
          call wrf_error_fatal("Pumpkin chem_driver: Unrecognized chem_opt")
    end select chem_select
@@ -200,6 +213,8 @@ subroutine chem_driver(grid, config_flags &
       enddo
    enddo
 
+   ! Some leftovers from original WRF chem_select. Don't touch unless you know what you are doing (I don't)
+   ! $ hplin 20180327 $
    do j = jps, min(jde - 1, jpe)
       do k = kps, kpe
          do i = ips, min(ide - 1, ipe)
@@ -236,9 +251,11 @@ subroutine chem_driver(grid, config_flags &
       kts = k_start
       kte = min(k_end, kde - 1)
 
-      CALL wrf_debug(15, ' call chem_prep')
+      CALL wrf_debug(15, 'Pumpkin chem_driver: Calling module_chem_utilities::chem_prep')
 
-      !!! chem_prep @ module_chem_utilities.f !!!
+      ! chem_prep @ module_chem_utilities.f
+      ! The chem_prep routine reads in the grid & configuration flags (grid%...)
+      ! And does conversions onto memorder XZY local variables, so they can be 
       CALL chem_prep(config_flags, &
                      grid%u_2, grid%v_2, grid%p, grid%pb, &
                      grid%alt, grid%ph_2, grid%phb, grid%t_2, &
