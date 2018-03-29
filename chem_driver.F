@@ -57,11 +57,11 @@ subroutine chem_driver(grid, config_flags &
    ! module_tropopause: diagnoses tropopause location
    use module_tropopause, only: tropopause_driver
 
+   implicit none
+
    ! provides information on WRF DMPAR parallel (MPI) process information
    ! namely whether this is the master process, using wrf_dm_on_monitor()
    logical, external :: wrf_dm_on_monitor
-
-   implicit none
 
    !! Input data.
    type(domain), target :: grid
