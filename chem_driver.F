@@ -24,7 +24,7 @@ subroutine chem_driver(grid, config_flags &
 )
 
    !! WRF Interfaces
-   use module_domain, only:domain
+   use module_domain, only: domain
    use module_configure
    use module_driver_constants
    use module_machine
@@ -33,27 +33,44 @@ subroutine chem_driver(grid, config_flags &
    use module_model_constants
    use module_state_description
 
-   !! chemistry stub interfaces
+   !! WRF Parallel 
+
+   !! Chemistry stub interfaces
+   ! module_chem_utilities: Provides chem_prep, which passes grid meteo information to chemistry
+   ! to local variables below.
    use module_chem_utilities
-   use module_aer_opt_out, only:aer_opt_out
-   use module_input_chem_data, only:last_chem_time, &
+
+   ! aer_opt_out: aerosol optical output information
+   use module_aer_opt_out, only: aer_opt_out
+
+   ! module_input_chem_data: get chemistry information, namely last_chem_time (last runtime of chemistry),
+   ! get_last_gas, last gas species index #, and a chem_dbg function
+   use module_input_chem_data, only: last_chem_time, &
 #if (defined(CHEM_DBG_I) && defined(CHEM_DBG_J) && defined(CHEM_DBG_K))
                                     chem_dbg, &
 #endif
       get_last_gas
 
+   ! upper_bc_driver: provides upper boundary conditions
    use module_upper_bc_driver, only: upper_bc_driver
+
+   ! module_tropopause: diagnoses tropopause location
    use module_tropopause, only: tropopause_driver
+
+   ! provides information on WRF DMPAR parallel (MPI) process information
+   ! namely whether this is the master process, using wrf_dm_on_monitor()
+   logical, external :: wrf_dm_on_monitor
 
    implicit none
 
-   !  Input data.
-   TYPE(domain), TARGET :: grid
+   !! Input data.
+   type(domain), target :: grid
 
-   !  Definitions of dummy arguments to solve
+   !! Definitions of dummy arguments to solve
 # include <dummy_new_decl.inc>
 # define NO_I1_OLD
 
+   ! namestep configuration flags (config_flags%chem_opt, for example)
    TYPE(grid_config_rec_type), INTENT(IN) :: config_flags
 
    !-- ids           start index for i in domain
@@ -81,7 +98,6 @@ subroutine chem_driver(grid, config_flags &
    !-- ipe           end index for i in patch
    !-- jps           start index for j in patch
    !-- jpe           end index for j in patch
-
    integer :: ids, ide, jds, jde, kds, kde, &
               ims, ime, jms, jme, kms, kme, &
               ips, ipe, jps, jpe, kps, kpe, &
@@ -113,9 +129,8 @@ subroutine chem_driver(grid, config_flags &
    logical      :: do_chemstep
 
    integer :: ij
-   integer :: im, num_3d_m, ic, num_3d_c, num_3d_s
+   integer :: num_3d_m, ic, num_3d_c, num_3d_s
    integer :: ijds, ijde
-   integer :: ksubt
 
    ! From module_ctrans_grell - used for setting a minimum range on chemistry species.
    real :: epsilc
@@ -125,14 +140,29 @@ subroutine chem_driver(grid, config_flags &
 
    character(len=256) :: current_date_char
    integer :: current_month
+   
+   ! For debug
+   character*256 :: message_txt
 
    intrinsic max, min
 
-   !
+   ! WRF DM (MPI) Parallel Information - is master process?
+   logical :: Am_I_Root
+   integer :: WRF_DM_MyProc, WRF_DM_NProc
+
+   if(wrf_dm_on_monitor()) then
+      Am_I_Root = .true.
+   else
+      Am_I_Root = .false.
+   endif
+
+   call wrf_get_nproc(WRF_DM_NProc)
+   call wrf_get_myproc(WRF_DM_MyProc)
+
    ! Setup the adaptive timestep for the chem routines. Most of this follows
    ! what is in solve_em, except for the call to adjust time_step.
    !
-   ! The necesssary variables exist for the EM core and using the adaptive
+   ! The necessary variables exist for the EM core and using the adaptive
    ! techniques will work even with a constant time step. In fact, they
    ! prevent issues with restarts and changed time steps. So, we will
    ! always use them with the EM core.
@@ -293,6 +323,12 @@ subroutine chem_driver(grid, config_flags &
 !!  CHEMISTRY DRIVER/ MECHANISM (do_timestep)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    if (do_chemstep) then
+      if(wrf_dm_on_monitor()) then
+         call wrf_debug(15, 'Pumpkin chem_driver: THIS IS THE MASTER PROCESS - CALLING CHEMISTRY')
+      else
+         write(message_txt, *) "Pumpkin chem_driver: Calling chemistry on subprocess ", WRF_DM_MyProc, " of ", WRF_DM_NProc
+         call wrf_debug(15, message_txt)
+      endif
       !! -- Stubbed out: do_chemstep (used to call mechanism_driver) -- !!
       ! An example call would be below (check what you have available):
       ! call mechanism_driver(grid%id, curr_secs, ktau, grid%dt, grid%ktauc, dtstepc, config_flags, &

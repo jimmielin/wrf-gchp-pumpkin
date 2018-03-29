@@ -132,7 +132,7 @@ about:
 	@echo "    are always available. Check with your chemistry maintainer.  "
 	@echo "    These commands are mostly developed for WRF-GCHP's GIGC part."
 	@echo "  * If you compiled WRF without install_registry, you need to    "
-	@echo "    clean all (./clean -a) to rebuild module_state_descripion.   "
+	@echo "    clean all (./clean -a) to rebuild module_state_description.  "
 	@echo "    A non-clean compile cannot refresh the registry.             "
 	@echo "*****************************************************************"
 
