@@ -37,7 +37,6 @@ MODULES =                                 \
         module_data_mosaic_asect.o \
         module_chem_utilities.o \
         module_interpolate.o \
-        module_aer_opt_out.o \
         module_tropopause.o \
         module_upper_bc_driver.o \
         module_mosaic_driver.o \
@@ -137,7 +136,6 @@ about:
 	@echo "*****************************************************************"
 
 # DEPENDENCIES : only dependencies after this line
-
 module_data_radm2.o:
 
 module_data_sorgam.o: module_data_radm2.o
@@ -169,4 +167,4 @@ module_input_chem_data.o: module_data_sorgam.o
 
 chemics_init.o: module_input_chem_data.o module_tropopause.o module_upper_bc_driver.o
 
-chem_driver.o: ../dyn_em/module_convtrans_prep.o module_input_chem_data.o module_chem_utilities.o module_tropopause.o module_upper_bc_driver.o module_aer_opt_out.o
+chem_driver.o: ../dyn_em/module_convtrans_prep.o module_input_chem_data.o module_chem_utilities.o module_tropopause.o module_upper_bc_driver.o

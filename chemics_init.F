@@ -51,14 +51,19 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
       USE module_domain
       USE module_configure
       USE module_state_description
+      USE module_dm
 
       ! WRF Physics Dependencies
-      USE module_cam_support, only: numgas_mam, gas_pcnst_modal_aero, gas_pcnst_modal_aero_pos
+      ! Just maintaining old code to not break CAM Physics Support.
+      USE module_cam_support, only: gas_pcnst_modal_aero, gas_pcnst_modal_aero_pos
 
-      USE module_input_chem_data, only: get_last_gas, &
-         last_chem_time, setup_gasprofile_maps
+      USE module_input_chem_data, only: get_last_gas, last_chem_time, setup_gasprofile_maps
 
       implicit none
+
+      ! provides information on WRF DMPAR parallel (MPI) process information
+      ! namely whether this is the master process, using wrf_dm_on_monitor()
+      logical, external :: wrf_dm_on_monitor
 
       real, intent(in) :: bioemdt, photdt, chemdt, dt, gmt
       integer, intent(IN) :: plumerisefire_frq
@@ -89,21 +94,19 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
          gaer1, gaer2, gaer3, gaer4, &
          waer1, waer2, waer3, waer4
 
-!-- Arrays needed to output dgnum when restarting
+      !-- Arrays needed to output dgnum when restarting
       real, dimension(ims:ime, kms:kme, jms:jme, 3), &
          intent(INOUT) :: dgnum4d, dgnumwet4d
       real, dimension(ims:ime, kms:kme, jms:jme), &
          intent(INOUT) :: &
          dgnum_a1, dgnum_a2, dgnum_a3, &
          dgnumwet_a1, dgnumwet_a2, dgnumwet_a3
-!-- end dgnum restart arrays
+      !-- end dgnum restart arrays
 
       real, dimension(ims:ime, kms:kme, jms:jme, 1:4), &
-         intent(INOUT) :: &
-         l2aer, l3aer, l4aer, l5aer, l6aer, l7aer
+         intent(INOUT) :: l2aer, l3aer, l4aer, l5aer, l6aer, l7aer
       real, dimension(ims:ime, kms:kme, jms:jme), &
-         intent(IN) :: &
-         z_at_w, t, p, alt, convfac
+         intent(IN) :: z_at_w, t, p, alt, convfac
       real, dimension(ims:ime, kms:kme, jms:jme, num_chem), &
          intent(INOUT) :: chem
       real, dimension(ims:ime, 1:kemit, jms:jme, num_emis_ant), &
@@ -119,12 +122,11 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
       type(grid_config_rec_type), intent(in) :: config_flags
       type(domain), intent(inout) :: grid
 
+      ! Local Variables
       character*256 :: mminlu_loc
       character*256 :: message_txt
       type(WRFU_TimeInterval) :: tmpTimeInterval
-      integer :: i, j, k, l, numgas, ixhour, n, ndystep, kk, nv
-      real, dimension(1, 1) :: sza, cosszax
-      real :: xtime, xhour, xmin, gmtp, xlonn, rlat
+      integer :: i, j, k, l, numgas, n, kk, nv
 
       ! From module_aerosols_sorgam / dep_simple, hplin 2-25-2018
       ! num_chem is from module_state_description
@@ -132,6 +134,19 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
 
       ! From module ctrans_grell, hplin 2-25-2018
       real :: epsilc
+
+      ! WRF DM (MPI) Parallel Information - is master process?
+      logical :: Am_I_Root
+      integer :: WRF_DM_MyProc, WRF_DM_NProc
+
+      if(wrf_dm_on_monitor()) then
+         Am_I_Root = .true.
+      else
+         Am_I_Root = .false.
+      endif
+
+      call wrf_get_nproc(WRF_DM_NProc)
+      call wrf_get_myproc(WRF_DM_MyProc)
 
 #ifdef CHEM_DBG_I
       call print_chem_species_index(config_flags%chem_opt)
@@ -153,7 +168,7 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
 
       chem_select: SELECT CASE(config_flags%chem_opt)
       CASE (1)
-        CALL wrf_debug(15, 'chemics_init: Initializing GCHP Chemistry Driver from chem_select')
+        CALL wrf_debug(15, 'Pumpkin chemics_init: Initializing Chemistry Driver')
       END SELECT chem_select
 
       ! WRF-Chem used to perform configuration flags validation here.
@@ -179,8 +194,8 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
          ENDIF
       ENDIF
 
-!-- Load dgnum arrays when restart is active
-      IF (config_flags%restart) THEN
+      !-- Load dgnum arrays when restart is active
+      if (config_flags%restart) then
          do j = jts, jte
             do k = kts, kte
                do i = its, ite
@@ -194,8 +209,8 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
                end do
             end do
          end do
-      ENDIF
-!-- end load dgnum arrays
+      endif
+      !-- end load dgnum arrays
 
       if (.NOT. config_flags%restart) then
          do j = jts, jte
@@ -272,6 +287,8 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
                end do
             end do
          end do
+
+         ! Zero out anthro. emission arrays.
          do l = 1, num_emis_ant
            do j = jts, jte
               do k = 1, kemit
@@ -283,38 +300,41 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
          end do
       end if
 
-! Catch some unsupported options.
-! In early development, 
+      ! Catch some unsupported options.
+      ! In early development, 
       if (config_flags%progn > 0) then
-         call wrf_error_fatal("chemics_init: progn > 0 option is not supported by this Chemistry abstraction layer.")
+         call wrf_error_fatal("Pumpkin chemics_init: progn > 0 option is not supported by this Chemistry abstraction layer.")
       endif
 
       if (config_flags%have_bcs_upper) then
-         call wrf_error_fatal("chemics_init: have_bcs_upper = .true. is not supported by this Chemistry abstraction layer.")
+         call wrf_error_fatal("Pumpkin chemics_init: have_bcs_upper = .true. is not supported by this Chemistry abstraction layer.")
       endif
 
-! Don't run if there isn't anything to do...
+      ! Don't run if there isn't anything to do...
       if(config_flags%chem_opt == 0) then
-        CALL wrf_debug(15, 'chemics_init: **** NO CHEMISTRY IS USED IN THIS WRF RUN ****')
+        CALL wrf_debug(15, 'Pumpkin chemics_init: **** NO CHEMISTRY IS USED IN THIS WRF RUN ****')
         return
       endif
 
-! Set the num_vert_mix variable if using ACM
+      ! Set the num_vert_mix variable if using ACM
       num_vert_mix = 0
       IF (config_flags%bl_pbl_physics == ACMPBLSCHEME) THEN
-         mix_select: SELECT CASE(config_flags%chem_opt)
-      CASE (RADM2SORG_AQ, RADM2SORG_AQCHEM, RACMSORG_AQ)
-         num_vert_mix = numgas
-      CASE DEFAULT
-         num_vert_mix = num_chem
-         END SELECT mix_select
+         mix_select: select case(config_flags%chem_opt)
+            case (radm2sorg_aq, radm2sorg_aqchem, racmsorg_aq)
+               ! if you have aqueous chemistry, then the num_vert_mix needs to be # of gas species & not # of chemistry_species.
+               num_vert_mix = numgas
+            case default
+               num_vert_mix = num_chem
+         end select mix_select
+
          if (num_vert_mix .gt. config_flags%ndepvel) then
             write (message_txt, '(A30,2(I8,2x))') 'chem_init: num_vert_mix and ndepvel ', num_vert_mix, config_flags%ndepvel
             call wrf_message(trim(message_txt))
-            call wrf_error_fatal(" ERROR: CHEM_INIT: num_vert_mix > ndepvel ")
+            call wrf_error_fatal("Pumpkin chemics_init: FATAL - num_vert_mix > ndepvel ")
          endif
-      ENDIF
+      endif
 
+      ! Calculate "timesteps" for out intent.
       stepbioe = nint(bioemdt*60./dt)
       stepphot = nint(photdt*60./dt)
       stepchem = nint(chemdt*60./dt)
@@ -323,26 +343,16 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
       stepphot = max(stepphot, 1)
       stepchem = max(stepchem, 1)
       stepfirepl = max(stepfirepl, 1)
-      call wrf_debug(15, 'in chem_init')
+      call wrf_debug(15, 'Pumpkin chemics_init: Starting chemistry init')
 
-! Setup the cross reference mappings between the default profiles and
-! the gas mechanism species (wig, 2-May-2007)
-!
+      ! Setup the cross reference mappings between the default profiles and
+      ! the gas mechanism species (wig, 2-May-2007)
+      ! Sets up the cross reference mapping indices and fractional
+      ! apportionment of the default species profiles for use with
+      ! ICs and BCs. (module_input_chem_data)
       call setup_gasprofile_maps(config_flags%chem_opt, numgas)
 
-! AEROSOL INITIALIZATION
-! Technically, we are doing a no-no here. The array is_aerosol is being
-! "re-allocated" and overwritten by each domain. Therefore, if different
-! chemistry settings are used for each nest level, we will get errors. I
-! have a feeling that this is not the only place that will have a problem
-! though so I am not worrying about it for now. The dilemma is that we
-! cannot declare and allocate is_aerosol via the registry because the
-! number of aerosols is not known at compile time. I have not figured out
-! a way to allocate a separate array for each nest outside of the
-! regiistry. For now, we will do a simple check to trap a change in the
-! desired size of num_chem and assume that if the size is the same, the
-! species will be too.  wig, 24-Oct-2005
-
+      ! Aerosol Information (is_aerosol array) allocation.
       if (.not. allocated(is_aerosol)) then
          allocate (is_aerosol(num_chem))
       else
@@ -350,41 +360,41 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
             call wrf_error_fatal("The number of chemistry species has changed between nests. Use same chem_opt for all domains.")
       end if
 
-  aer_select: SELECT CASE(config_flags%chem_opt)
-   CASE(1)
-      CALL wrf_debug(15, 'chemics_init: Stubbed out: Aerosols Initialization Routine')
-      if (config_flags%chem_in_opt == 0) then
-         if (.NOT. config_flags%restart) then
-            do j = jts, jte
-               do k = kts, kte
-                  do i = its, ite
-                  !    chem(i, k, j, p_dms) = ...
+      aer_select: select case(config_flags%chem_opt)
+         case(1)
+            call wrf_debug(15, 'chemics_init: stubbed out: aerosols initialization routine')
+            if (config_flags%chem_in_opt == 0) then
+               if (.not. config_flags%restart) then
+                  do j = jts, jte
+                     do k = kts, kte
+                        do i = its, ite
+                        !    chem(i, k, j, p_dms) = ...
+                        enddo
+                     enddo
                   enddo
-               enddo
-            enddo
-         endif
-      endif
+               endif
+            endif
 
-!...Convert aerosols to mixing ratio
-      if (.NOT. config_flags%restart) then
-        if (config_flags%chem_in_opt == 0 .and. num_chem .gt. numgas) then
-        do l = numgas + 1, num_chem
-           do j = jts, jte
-              do k = kts, kte
-                 kk = min(k, kde - 1)
-                 do i = its, ite
-                    chem(i, k, j, l) = chem(i, kk, j, l)*alt(i, kk, j)
+            !...convert aerosols to mixing ratio
+            if (.not. config_flags%restart) then
+              if (config_flags%chem_in_opt == 0 .and. num_chem .gt. numgas) then
+              do l = numgas + 1, num_chem
+                 do j = jts, jte
+                    do k = kts, kte
+                       kk = min(k, kde - 1)
+                       do i = its, ite
+                          chem(i, k, j, l) = chem(i, kk, j, l)*alt(i, kk, j)
+                       enddo
+                    enddo
                  enddo
               enddo
-           enddo
-        enddo
-        endif
-      endif
+              endif
+            endif
 
-      epsilc=1.e-30
-      chem(its:ite, kts:min(kte, kde - 1), jts:jte, :) = max(chem(its:ite, kts:min(kte, kde - 1), jts:jte, :), epsilc)
-
-      END SELECT aer_select
+            ! ensure chem has a min value >= epsilc
+            epsilc=1.e-30
+            chem(its:ite, kts:min(kte, kde - 1), jts:jte, :) = max(chem(its:ite, kts:min(kte, kde - 1), jts:jte, :), epsilc)
+      end select aer_select
 
       do nv = 1, num_chem
          do j = jts, jte
@@ -394,19 +404,9 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
          enddo
       enddo
 
-!
-! Setup time info for chemistry
-!
+      ! Setup time info for chemistry
       if (config_flags%restart) then
          call wrf_debug(15, "Setting last_chem_time from restart file")
-! Do not know if I need the following nl_gets.
-! domain_get_sim_start_time uses them for simulation_start_...
-!          CALL nl_get_start_year   ( 1, last_chem_time_year   )
-!          CALL nl_get_start_month  ( 1, last_chem_time_month  )
-!          CALL nl_get_start_day    ( 1, last_chem_time_day    )
-!          CALL nl_get_start_hour   ( 1, last_chem_time_hour   )
-!          CALL nl_get_start_minute ( 1, last_chem_time_minute )
-!          CALL nl_get_start_second ( 1, last_chem_time_second )
          call WRFU_TimeSet(last_chem_time(id), &
                            YY=last_chem_time_year, &
                            MM=last_chem_time_month, &
@@ -420,7 +420,8 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
          last_chem_time(id) = domain_get_current_time(grid) - tmpTimeInterval
       end if
 
-      gas_pcnst_modal_aero_pos = max(1, gas_pcnst_modal_aero) !BSINGH - Fix for non-MAM simulations
+      ! Keep the following for compatibility with WRF CAM/MAM Physics Scheme.
+      gas_pcnst_modal_aero_pos = max(1, gas_pcnst_modal_aero) ! BSINGH - Fix for non-MAM simulations
 END SUBROUTINE chem_init
 
 !-----------------------------------------------------------------------

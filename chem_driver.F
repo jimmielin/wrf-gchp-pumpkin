@@ -40,9 +40,6 @@ subroutine chem_driver(grid, config_flags &
    ! to local variables below.
    use module_chem_utilities
 
-   ! aer_opt_out: aerosol optical output information
-   use module_aer_opt_out, only: aer_opt_out
-
    ! module_input_chem_data: get chemistry information, namely last_chem_time (last runtime of chemistry),
    ! get_last_gas, last gas species index #, and a chem_dbg function
    use module_input_chem_data, only: last_chem_time, &
@@ -302,20 +299,13 @@ subroutine chem_driver(grid, config_flags &
       if ((its <= CHEM_DBG_I .and. ite >= CHEM_DBG_I) .and. &
           (jts <= CHEM_DBG_J .and. jte >= CHEM_DBG_J) .and. &
           (k_start <= CHEM_DBG_K .and. k_end >= CHEM_DBG_K)) then
-         call wrf_debug(15, 'calling chem_dbg after dry_deposition_driver')
+         call wrf_debug(15, 'Pumpkin chem_driver: Calling chem_dbg before doing chemistry')
          call chem_dbg(CHEM_DBG_I, CHEM_DBG_J, CHEM_DBG_K, grid%dt, ktau, &
                        dz8w, t_phy, p_phy, rho, chem, emis_ant, &
                        ids, ide, jds, jde, kds, kde, &
                        ims, ime, jms, jme, kms, kme, &
                        its, ite, jts, jte, kts, kte, &
-                       config_flags%kemit, &
-                       grid%ph_macr, grid%ph_o31d, grid%ph_o33p, grid%ph_no2, grid%ph_no3o2, &
-                       grid%ph_no3o, grid%ph_hno2, grid%ph_hno3, grid%ph_hno4, grid%ph_h2o2, &
-                       grid%ph_ch2or, grid%ph_ch2om, grid%ph_ch3cho, grid%ph_ch3coch3, &
-                       grid%ph_ch3coc2h5, grid%ph_hcocho, grid%ph_ch3cocho, &
-                       grid%ph_hcochest, grid%ph_ch3o2h, grid%ph_ch3coo2h, &
-                       grid%ph_ch3ono2, grid%ph_hcochob, grid%ph_n2o5, grid%ph_o2 &
-                       )
+                       config_flags%kemit)
       end if
 #endif
 
@@ -323,10 +313,10 @@ subroutine chem_driver(grid, config_flags &
 !!  CHEMISTRY DRIVER/ MECHANISM (do_timestep)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    if (do_chemstep) then
-      if(wrf_dm_on_monitor()) then
+      if(Am_I_Root) then
          call wrf_debug(15, 'Pumpkin chem_driver: THIS IS THE MASTER PROCESS - CALLING CHEMISTRY')
       else
-         write(message_txt, *) "Pumpkin chem_driver: Calling chemistry on subprocess ", WRF_DM_MyProc, " of ", WRF_DM_NProc
+         write(message_txt, *) "Pumpkin chem_driver: Calling chemistry on subprocess ", WRF_DM_MyProc, "(+1) of ", WRF_DM_NProc
          call wrf_debug(15, message_txt)
       endif
       !! -- Stubbed out: do_chemstep (used to call mechanism_driver) -- !!
@@ -350,7 +340,6 @@ subroutine chem_driver(grid, config_flags &
       !                         ids, ide, jds, jde, kds, kde, &
       !                         ims, ime, jms, jme, kms, kme, &
       !                         its, ite, jts, jte, kts, kte)
-
    end if ! Chemistry time step check
 
    ! Fill top level to prevent spurious interpolation results (no extrapolation)
@@ -362,25 +351,9 @@ subroutine chem_driver(grid, config_flags &
       enddo
    enddo
 
-   call wrf_debug(15, 'done tileloop in chem_driver')
-
-   if (grid%OPT_PARS_OUT == 1) then
-      call wrf_debug(15, 'calculate optical output stuff')
-      call aer_opt_out(TAUAER300=grid%tauaer1, TAUAER400=grid%tauaer2                            &
-     &        , TAUAER600=grid%tauaer3, TAUAER999=grid%tauaer4                                    &
-     &        , GAER300=grid%gaer1, GAER400=grid%gaer2, GAER600=grid%gaer3, GAER999=grid%gaer4    &
-     &        , WAER300=grid%waer1, WAER400=grid%waer2, WAER600=grid%waer3, WAER999=grid%waer4 &
-              , ext_coeff=grid%ext_coef, bscat_coeff=grid%bscat_coef, asym_par=grid%asym_par &
-              , num_ext_coef=num_ext_coef, num_bscat_coef=num_bscat_coef, num_asym_par=num_asym_par &
-     &        , dz8w=dz8w                                                                         &
-     &        , IDS=ids, IDE=ide, JDS=jds, JDE=jde, KDS=kds, KDE=kde                                 &
-     &        , IMS=ims, IME=ime, JMS=jms, JME=jme, KMS=kms, KME=kme                                 &
-     &        , its=its, ite=ite, jts=jts, jte=jte, kts=kts, kte=kte)
-   endif
-
 !-- set upper boundary condition
    if (config_flags%have_bcs_upper) then
-      call wrf_debug(15, 'set upper boundary condition')
+      call wrf_debug(15, 'Pumpkin chem_driver: set upper boundary condition')
       call tropopause_driver(grid%id, grid%dt, current_date_char, &
                              t_phy, p_phy, p8w, zmid, z_at_w, &
                              grid%tropo_lev, grid%tropo_p, grid%tropo_z, &
@@ -393,6 +366,8 @@ subroutine chem_driver(grid, config_flags &
                            ims, ime, jms, jme, kms, kme, &
                            its, ite, jts, jte, kts, kte)
    endif
+
+   call wrf_debug(15, 'Pumpkin chem_driver: Exiting chem_driver (chem_tile_loop_1)')
 end do chem_tile_loop_1
 
 !-- Work around for dgnum and dgnumwet not being written to restart files.
@@ -405,4 +380,4 @@ end do chem_tile_loop_1
 ! grid%dgnumwet_a2(its:ite, kts:kte, jts:jte) = grid%dgnumwet4d(its:ite, kts:kte, jts:jte, 2)
 ! grid%dgnumwet_a3(its:ite, kts:kte, jts:jte) = grid%dgnumwet4d(its:ite, kts:kte, jts:jte, 3)
 
-END subroutine chem_driver
+end subroutine chem_driver

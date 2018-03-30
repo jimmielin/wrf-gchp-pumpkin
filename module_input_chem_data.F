@@ -249,8 +249,7 @@ contains
 
    ! setup_gasprofile_maps
    ! Sets up the cross reference mapping indices and fractional
-   ! apportionment of the default species profiles for use with
-   ! ICs and BCs.
+   ! apportionment of the default species profiles for use with ICs and BCs.
    ! req. by chem/chemics_init
    !!!! CHEMISTRY DEVELOPERS: YOU MUST UPDATE THIS FOR THE RIGHT INDEXES DEP. ON YOUR REGISTRY.
    subroutine setup_gasprofile_maps(chem_opt, numgas)
@@ -294,9 +293,9 @@ contains
    ! input_chem_profile
    ! req. by real_em
    ! Based on original WRF-Chem module_input_chem_data::input_chem_profile, (c) original authors
-   subroutine input_chem_profile(si_grid)
+   subroutine input_chem_profile(grid)
       implicit none
-      type(domain) :: si_grid
+      type(domain) :: grid
 
       integer :: i, j, k, &
                  ids, ide, jds, jde, kds, kde, &
@@ -312,7 +311,7 @@ contains
       parameter (grav=9.80622)
 
       ! Get grid dimensions
-      call get_ijk_from_grid(si_grid, &
+      call get_ijk_from_grid(grid, &
                              ids, ide, jds, jde, kds, kde, &
                              ims, ime, jms, jme, kms, kme, &
                              ips, ipe, jps, jpe, kps, kpe)
@@ -321,7 +320,7 @@ contains
       allocate (si_zsigf(ims:ime, kms:kme, jms:jme))
       allocate (si_zsig(ims:ime, kms:kme, jms:jme))
 
-      si_zsigf = (si_grid%ph_1 + si_grid%phb)/grav
+      si_zsigf = (grid%ph_1 + grid%phb)/grav
 
       do k = 1, kde - 1
          si_zsig(:, k, :) = 0.5*(si_zsigf(:, k, :) + si_zsigf(:, k + 1, :))
@@ -329,21 +328,21 @@ contains
       si_zsig(:, kde, :) = 0.5*(3.*si_zsigf(:, kde, :) - si_zsigf(:, kde - 1, :))
 
       ! Determine the index of the last gas species
-      numgas = get_last_gas(si_grid%chem_opt)
+      numgas = get_last_gas(grid%chem_opt)
 
       ! Setup the cross reference mappings between the default profiles and
       ! the gas mechanism species (wig, 2-May-2007)
-      call setup_gasprofile_maps(si_grid%chem_opt, numgas)
+      call setup_gasprofile_maps(grid%chem_opt, numgas)
 
-      ! Interpolate the chemistry data to the SI grid. These values should typically
+      ! Interpolate the chemistry data to the grid. These values should typically
       ! be set to match the values in bdy_chem_value_tracer so that the boundaries
       ! and interior match each other.
-      if (si_grid%chem_opt == 0) then
+      if (grid%chem_opt == 0) then
          ! this is set as an example from the original module_input_chem_data
-         ! si_grid%chem(ims:ime, kms:kme, jms:jme, 1:numgas) = 0.
+         ! grid%chem(ims:ime, kms:kme, jms:jme, 1:numgas) = 0.
       else
          call make_chem_profile(ims, ime, jms, jme, kms, kme, num_chem, numgas, &
-                                si_grid%chem_opt, si_zsig, si_grid%chem)
+                                grid%chem_opt, si_zsig, grid%chem)
       end if
 
       call wrf_debug(100, ' input_chem_profile: exit subroutine ')
@@ -421,23 +420,23 @@ contains
    ! WRF-Chem v3.6.1, (c) original authors
    subroutine vinterp_chem(nx1, nx2, ny1, ny2, nz1, nz_in, nz_out, nch, z_in, z_out, &
                            data_in, data_out, extrapolate)
-      INTEGER, INTENT(IN)                :: nx1, nx2
-      INTEGER, INTENT(IN)                :: ny1, ny2
-      INTEGER, INTENT(IN)                :: nz1
-      INTEGER, INTENT(IN)                :: nz_in
-      INTEGER, INTENT(IN)                :: nz_out
-      INTEGER, INTENT(IN)                :: nch
-      REAL, INTENT(IN)                   :: z_in(nx1:nx2, nz1:nz_in, ny1:ny2)
-      REAL, INTENT(IN)                   :: z_out(nx1:nx2, nz1:nz_out, ny1:ny2)
-      REAL, INTENT(IN)                   :: data_in(nx1:nx2, nz1:nz_in, ny1:ny2, nch)
-      REAL, INTENT(OUT)                  :: data_out(nx1:nx2, nz1:nz_out, ny1:ny2, nch)
-      LOGICAL, INTENT(IN)                :: extrapolate
+      integer, intent(in)                :: nx1, nx2
+      integer, intent(in)                :: ny1, ny2
+      integer, intent(in)                :: nz1
+      integer, intent(in)                :: nz_in
+      integer, intent(in)                :: nz_out
+      integer, intent(in)                :: nch
+      real, intent(in)                   :: z_in(nx1:nx2, nz1:nz_in, ny1:ny2)
+      real, intent(in)                   :: z_out(nx1:nx2, nz1:nz_out, ny1:ny2)
+      real, intent(in)                   :: data_in(nx1:nx2, nz1:nz_in, ny1:ny2, nch)
+      real, intent(out)                  :: data_out(nx1:nx2, nz1:nz_out, ny1:ny2, nch)
+      logical, intent(in)                :: extrapolate
 
-      INTEGER                            :: i, j, l
-      INTEGER                            :: k, kk
-      REAL                               :: desired_z
-      REAL                               :: dvaldz
-      REAL                               :: wgt0
+      integer                            :: i, j, l
+      integer                            :: k, kk
+      real                               :: desired_z
+      real                               :: dvaldz
+      real                               :: wgt0
 
       ! Loop over the number of chemical species
       chem_loop: DO l = 2, nch
@@ -658,11 +657,6 @@ contains
             enddo
          enddo
       endif
-
-      
-
-
-
    end subroutine flow_dep_bdy_chem
 
    ! chem_dbg
@@ -683,21 +677,19 @@ contains
                        ph_o2)
 
       implicit none
-      INTEGER, INTENT(IN) :: i, j, k, &
+      integer, intent(in) :: i, j, k, &
                              ids, ide, jds, jde, kds, kde, &
                              ims, ime, jms, jme, kms, kme, &
                              its, ite, jts, jte, kts, kte, &
                              kemit
       real, intent(in) :: dtstep
       integer, intent(in) :: itimestep
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme, num_chem), &
-         INTENT(INOUT) :: chem
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), &
-         INTENT(IN) :: dz8w, t_phy, p_phy, rho_phy
-      REAL, DIMENSION(ims:ime, kms:kemit, jms:jme, num_emis_ant), &
-         INTENT(IN) :: emis_ant
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), &
-         INTENT(IN), OPTIONAL :: &
+      real, dimension(ims:ime, kms:kme, jms:jme, num_chem), intent(inout) :: chem
+      real, dimension(ims:ime, kms:kme, jms:jme), intent(in) :: dz8w, t_phy, p_phy, rho_phy
+      real, dimension(ims:ime, kms:kemit, jms:jme, num_emis_ant), &
+         intent(in) :: emis_ant
+      real, dimension(ims:ime, kms:kme, jms:jme), &
+         intent(in), optional :: &
          ph_macr, ph_o31d, ph_o33p, ph_no2, ph_no3o2, ph_no3o, ph_hno2, &
          ph_hno3, ph_hno4, ph_h2o2, ph_ch2or, ph_ch2om, ph_ch3cho, &
          ph_ch3coch3, ph_ch3coc2h5, ph_hcocho, ph_ch3cocho, &
@@ -705,87 +697,16 @@ contains
          ph_o2
 
       integer :: n
-      real :: conva, convg
 
       print *, "itimestep =", itimestep
-
       print *, "MET DATA AT (i,k,j):", i, k, j
       print *, "t_phy,p_phy,rho_phy=", t_phy(i, k, j), p_phy(i, k, j), rho_phy(i, k, j)
 
-      if (dz8w(i, k, j) /= 0.) then
-         conva = dtstep/(dz8w(i, k, j)*60.)
-         convg = 4.828e-4/rho_phy(i, k, j)*dtstep/(dz8w(i, k, j)*60.)
-         print *, "ADJUSTED EMISSIONS (PPM) AT (i,k,j):", i, k, j
-         print *, "dtstep,dz8w(i,k,j):", dtstep, dz8w(i, k, j)
-         print *, "e_pm25 i,j:", emis_ant(i, k, j, p_e_pm25i)*conva, &
-            emis_ant(i, k, j, p_e_pm25j)*conva
-         print *, "e_ec i,j:", emis_ant(i, k, j, p_e_eci)*conva, &
-            emis_ant(i, k, j, p_e_ecj)*conva
-         print *, "e_org i,j:", emis_ant(i, k, j, p_e_orgi)*conva, &
-            emis_ant(i, k, j, p_e_orgj)*conva
-         print *, "e_so2:", emis_ant(i, k, j, p_e_so2)*convg
-         print *, "e_no:", emis_ant(i, k, j, p_e_no)*convg
-         print *, "e_co:", emis_ant(i, k, j, p_e_co)*convg
-         print *, "e_eth:", emis_ant(i, k, j, p_e_eth)*convg
-         print *, "e_hc3:", emis_ant(i, k, j, p_e_hc3)*convg
-         print *, "e_hc5:", emis_ant(i, k, j, p_e_hc5)*convg
-         print *, "e_hc8:", emis_ant(i, k, j, p_e_hc8)*convg
-         print *, "e_xyl:", emis_ant(i, k, j, p_e_xyl)*convg
-         print *, "e_ol2:", emis_ant(i, k, j, p_e_ol2)*convg
-         print *, "e_olt:", emis_ant(i, k, j, p_e_olt)*convg
-         print *, "e_oli:", emis_ant(i, k, j, p_e_oli)*convg
-         print *, "e_tol:", emis_ant(i, k, j, p_e_tol)*convg
-         print *, "e_csl:", emis_ant(i, k, j, p_e_csl)*convg
-         print *, "e_hcho:", emis_ant(i, k, j, p_e_hcho)*convg
-         print *, "e_ald:", emis_ant(i, k, j, p_e_ald)*convg
-         print *, "e_ket:", emis_ant(i, k, j, p_e_ket)*convg
-         print *, "e_ora2:", emis_ant(i, k, j, p_e_ora2)*convg
-         print *, "e_pm25:", emis_ant(i, k, j, p_e_pm_25)*conva
-         print *, "e_pm10:", emis_ant(i, k, j, p_e_pm_10)*conva
-         print *, "e_nh3:", emis_ant(i, k, j, p_e_nh3)*convg
-         print *, "e_no2:", emis_ant(i, k, j, p_e_no2)*convg
-         print *, "e_ch3oh:", emis_ant(i, k, j, p_e_ch3oh)*convg
-         print *, "e_c2h5oh:", emis_ant(i, k, j, p_e_c2h5oh)*convg
-         print *, "e_iso:", emis_ant(i, k, j, p_e_iso)*convg
-         print *, "e_so4 f,c:", emis_ant(i, k, j, p_e_so4j)*conva
-         print *, "e_no3 f,c:", emis_ant(i, k, j, p_e_no3j)*conva
-         print *, "e_orgc:", emis_ant(i, k, j, p_e_orgc)*conva
-         print *, "e_ecc:", emis_ant(i, k, j, p_e_ecc)*conva
-         print*
-      else
-         print *, "dz8w=0 so cannot show adjusted emissions"
-      end if
       print *, "CHEM_DBG PRINT (PPM or ug/m^3) AT (i,k,j):", i, k, j
       do n = 1, num_chem
          print *, n, chem(i, k, j, n)
       end do
-      if (present(ph_macr)) then
-         print *, "PHOTOLYSIS DATA:"
-         print *, "ph_macr:", ph_macr(i, :, j)
-         print *, "ph_o31d:", ph_o31d(i, :, j)
-         print *, "ph_o33p:", ph_o33p(i, :, j)
-         print *, "ph_no2:", ph_no2(i, :, j)
-         print *, "ph_no3o2:", ph_no3o2(i, :, j)
-         print *, "ph_no3o:", ph_no3o(i, :, j)
-         print *, "ph_hno2:", ph_hno2(i, :, j)
-         print *, "ph_hno3:", ph_hno3(i, :, j)
-         print *, "ph_hno4:", ph_hno4(i, :, j)
-         print *, "ph_h2o2:", ph_h2o2(i, :, j)
-         print *, "ph_ch2or:", ph_ch2or(i, :, j)
-         print *, "ph_ch2om:", ph_ch2om(i, :, j)
-         print *, "ph_ch3cho:", ph_ch3cho(i, :, j)
-         print *, "ph_ch3coch3:", ph_ch3coch3(i, :, j)
-         print *, "ph_ch3coc2h5:", ph_ch3coc2h5(i, :, j)
-         print *, "ph_hcocho:", ph_hcocho(i, :, j)
-         print *, "ph_ch3cocho:", ph_ch3cocho(i, :, j)
-         print *, "ph_hcochest:", ph_hcochest(i, :, j)
-         print *, "ph_ch3o2h:", ph_ch3o2h(i, :, j)
-         print *, "ph_ch3coo2h:", ph_ch3coo2h(i, :, j)
-         print *, "ph_ch3ono2:", ph_ch3ono2(i, :, j)
-         print *, "ph_hcochob:", ph_hcochob(i, :, j)
-         print *, "ph_n2o5:", ph_n2o5(i, :, j)
-         print *, "ph_o2:", ph_o2(i, :, j)
-      end if
+
       print*
    end subroutine chem_dbg
 #endif
