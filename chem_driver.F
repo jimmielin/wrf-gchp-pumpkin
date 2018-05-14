@@ -1,17 +1,8 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-!   WRF-GCHP
-!   GEOS-Chem High Performance-powered Chemistry Add-On for WRF Model
-!
-!   WRF & GCHP are (c) their original authors.
-!   WRF-GCHP coupling layer (WGCL) is (c) Atmospheric Chemistry and Climate Group, Peking University
-!
-!   Developed by Haipeng Lin <linhaipeng@pku.edu.cn>, Xu Feng, 2018-01
-!   Peking University, School of Physics
-!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!   
 !   Codename Pumpkin: Abstracted Bindings for Chemistry-to-WRF
+!   (c) Haipeng Lin <linhaipeng@pku.edu.cn>, 2018-01
+!   Developed at Peking University, School of Physics
 !
 !   This Chemical Interface (chem/) is written after comprehensive study of
 !   the original chem_driver.f from WRF-Chem v3.6.1

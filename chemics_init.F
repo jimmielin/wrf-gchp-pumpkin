@@ -2,18 +2,9 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-!   WRF-GCHP
-!   GEOS-Chem High Performance-powered Chemistry Add-On for WRF Model
-!
-!   WRF & GCHP are (c) their original authors.
-!   WRF-GCHP coupling layer (WGCL) is (c) Atmospheric Chemistry and Climate Group, Peking University
-!
-!   Developed by Haipeng Lin <linhaipeng@pku.edu.cn>, Xu Feng, 2018-01
-!   Peking University, School of Physics
-!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!
 !   Codename Pumpkin: Abstracted Bindings for Chemistry-to-WRF
+!   (c) Haipeng Lin <linhaipeng@pku.edu.cn>, 2018-01
+!   Developed at Peking University, School of Physics
 !
 !   This Chemical Interface (chem/) is written after comprehensive study of
 !   the original chem_driver.f from WRF-Chem v3.6.1
@@ -161,7 +152,6 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
       call wrf_message("      \/  \/   |_|  \_\_|          \_____|\_____|_|  |_|_|       ")
       call wrf_message("*****************************************************************")
       call wrf_message("       WRF-GCHP MODEL, VERSION 1802.01 - WRF BINDINGS            ")
-      call wrf_message(" For errors, suggestions and feedback contact wrfgchp@pku.edu.cn ")
       call wrf_message("*****************************************************************")
 
       numgas = get_last_gas(config_flags%chem_opt)
