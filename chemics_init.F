@@ -33,10 +33,10 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
                     last_chem_time_year, last_chem_time_month, &
                     last_chem_time_day, last_chem_time_hour, &
                     last_chem_time_minute, last_chem_time_second, &
-                    chem_in_opt, kemit, num_vert_mix, &
-                    ids, ide, jds, jde, kds, kde, &
-                    ims, ime, jms, jme, kms, kme, &
-                    its, ite, jts, jte, kts, kte)
+                    chem_in_opt, kemit, num_vert_mix,  &
+                    oldids, oldide, oldjds, oldjde, oldkds, oldkde, &
+                    oldims, oldime, oldjms, oldjme, oldkms, oldkme, &
+                    oldits, oldite, oldjts, oldjte, oldkts, oldkte)
 
       ! WRF Core Dependencies
       USE module_domain
@@ -67,9 +67,14 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
                              last_chem_time_hour, &
                              last_chem_time_minute, &
                              last_chem_time_second, &
-                             ids, ide, jds, jde, kds, kde, &
-                             ims, ime, jms, jme, kms, kme, &
-                             its, ite, jts, jte, kts, kte
+                             oldids, oldide, oldjds, oldjde, oldkds, oldkde, &
+                             oldims, oldime, oldjms, oldjme, oldkms, oldkme, &
+                             oldits, oldite, oldjts, oldjte, oldkts, oldkte
+
+      integer :: ids, ide, jds, jde, kds, kde, &
+                 ims, ime, jms, jme, kms, kme, &
+                 its, ite, jts, jte, kts, kte
+
       real, dimension(ims:ime, kms:kme, jms:jme), &
          intent(INOUT) :: &
          pm2_5_dry, pm2_5_water, pm2_5_dry_ec, &
@@ -138,6 +143,11 @@ subroutine chem_init(id, chem, emis_ant, scalar, dt, bioemdt, photdt, chemdt, st
 
       call wrf_get_nproc(WRF_DM_NProc)
       call wrf_get_myproc(WRF_DM_MyProc)
+
+      call get_ijk_from_grid( grid, &
+                              ids, ide, jds, jde, kds, kde, &
+                              ims, ime, jms, jme, kms, kme, &
+                              its, ite, jts, jte, kts, kte)
 
 #ifdef CHEM_DBG_I
       call print_chem_species_index(config_flags%chem_opt)
